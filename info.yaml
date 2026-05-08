@@ -1,0 +1,48 @@
+# Tiny Tapeout project information
+project:
+  title:        "Trinity GF16 Dot Product Accelerator"
+  author:       "Trinity Stack"
+  discord:      ""
+  description:  "GF16 (Golden Float 16-bit, bias=31) dot product N=4. FPGA-validated at 323 MHz on XC7A100T. 4 mul + 3 add tree, combinational."
+  language:     "Verilog"
+  clock_hz:     50000000
+
+  tiles: "1x1"
+
+  top_module:  "tt_um_ghtag_trinity_gf16"
+
+  source_files:
+    - "tt_um_ghtag_trinity_gf16.v"
+    - "gf16_mul.v"
+    - "gf16_add.v"
+    - "gf16_dot4.v"
+
+pinout:
+  ui[0]: "load_mode"
+  ui[1]: "data_bit_0"
+  ui[2]: "data_bit_1"
+  ui[3]: "data_bit_2"
+  ui[4]: "data_bit_3"
+  ui[5]: "data_bit_4"
+  ui[6]: "data_bit_5"
+  ui[7]: "data_bit_6"
+
+  uo[0]: "result_bit_0"
+  uo[1]: "result_bit_1"
+  uo[2]: "result_bit_2"
+  uo[3]: "result_bit_3"
+  uo[4]: "result_bit_4"
+  uo[5]: "result_bit_5"
+  uo[6]: "result_bit_6"
+  uo[7]: "result_bit_7"
+
+  uio[0]: "result_high_bit_0"
+  uio[1]: "result_high_bit_1"
+  uio[2]: "result_high_bit_2"
+  uio[3]: "result_high_bit_3"
+  uio[4]: "result_high_bit_4"
+  uio[5]: "result_high_bit_5"
+  uio[6]: "result_high_bit_6"
+  uio[7]: "result_high_bit_7"
+
+yaml_version: 6
