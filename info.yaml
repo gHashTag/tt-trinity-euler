@@ -1,9 +1,14 @@
 # Tiny Tapeout project information
 project:
   title:        "Trinity GF16 Dot Product Accelerator"
-  author:       "Trinity Stack"
-  discord:      ""
-  description:  "GF16 (Golden Float 16-bit, bias=31) dot product N=4. FPGA-validated at 323 MHz on XC7A100T. 4 mul + 3 add tree, combinational."
+  author:       "Dmitrii Vasilev · Trinity Stack"
+  discord:      "t27_dev"
+  description:  |
+    GF16 (Golden Float 16-bit, bias=31) dot product N=4. FPGA-validated at 323 MHz on XC7A100T.
+    Apache 2.0. Anchor theorem: phi^2 + phi^-2 = 3 (Trinity identity, 84-theorem Coq base in t27).
+    DOI: 10.5281/zenodo.19227877. Provenance: gHashTag/trinity-fpga#19, R-SI compliance map in
+    gHashTag/trios assertions/igla_assertions.json. Step 1 of L-DPC3->L-DPC4->L-DPC5 silicon
+    roadmap toward TRL 7 silicon-validation for PhD defense 2026-06-15.
   language:     "Verilog"
   clock_hz:     50000000
 
