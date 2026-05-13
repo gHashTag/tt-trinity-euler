@@ -49,20 +49,29 @@ module tt_um_ghtag_trinity_gf16 (
     wire [15:0] mesh_dbg_tile0;
     wire [15:0] mesh_result;
     wire        mesh_result_valid;
+    // G4 DePIN on-die receipt outputs from the master FSM (latched RECEIPT packet)
+    wire [7:0]  mesh_rcpt_checksum;
+    wire [7:0]  mesh_rcpt_job_id;
+    wire [1:0]  mesh_rcpt_tile_id;
+    wire        mesh_rcpt_valid;
 
     trinity_master_fsm u_master (
-        .clk            (clk),
-        .rst_n          (rst_n),
-        .ena            (ena),
-        .load_mode      (ui_in[0]),
-        .host_in_pkt    (host_in_pkt),
-        .host_in_valid  (host_in_valid),
-        .host_in_ready  (host_in_ready),
-        .host_out_pkt   (host_out_pkt),
-        .host_out_valid (host_out_valid),
-        .host_out_ready (host_out_ready),
-        .result_reg     (mesh_result),
-        .result_valid_q (mesh_result_valid)
+        .clk             (clk),
+        .rst_n           (rst_n),
+        .ena             (ena),
+        .load_mode       (ui_in[0]),
+        .host_in_pkt     (host_in_pkt),
+        .host_in_valid   (host_in_valid),
+        .host_in_ready   (host_in_ready),
+        .host_out_pkt    (host_out_pkt),
+        .host_out_valid  (host_out_valid),
+        .host_out_ready  (host_out_ready),
+        .result_reg      (mesh_result),
+        .result_valid_q  (mesh_result_valid),
+        .rcpt_checksum_q (mesh_rcpt_checksum),
+        .rcpt_job_id_q   (mesh_rcpt_job_id),
+        .rcpt_tile_id_q  (mesh_rcpt_tile_id),
+        .rcpt_valid_q    (mesh_rcpt_valid)
     );
 
     trinity_mesh_2x2 u_mesh (
@@ -84,7 +93,12 @@ module tt_um_ghtag_trinity_gf16 (
     assign uio_out = final_result[15:8] | input_echo[15:8];
     assign uio_oe  = 8'hFF;
 
-    // Silence lint on unused
-    wire _unused = &{1'b0, mesh_dbg_tile0, ena, 1'b0};
+    // Silence lint on unused. The G4 receipt outputs are exposed to the
+    // testbench via the master FSM directly (not via TT pins, which are
+    // exhausted by the legacy dot4/mesh result mux); they MUST be folded
+    // into _unused here so synthesis keeps the registers.
+    wire _unused = &{1'b0, mesh_dbg_tile0, ena,
+                     mesh_rcpt_checksum, mesh_rcpt_job_id,
+                     mesh_rcpt_tile_id, mesh_rcpt_valid, 1'b0};
 
 endmodule

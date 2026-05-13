@@ -36,7 +36,7 @@ future radio / Ethernet / mesh adapters will plug into.
 ### Modules (synthesizable, Apache-2.0)
 - `gf16_mul.v`, `gf16_add.v`, `gf16_dot4.v` — existing combinational GF16 demo
 - `trinity_packet.vh` — 32-bit packet format constants (op, dst, src, lane, payload)
-- `trinity_gf16_tile.v` — wraps `gf16_dot4` as a packet-addressable tile (LOAD_A / LOAD_B / COMPUTE / READ_RES → RESULT)
+- `trinity_gf16_tile.v` — wraps `gf16_dot4` as a packet-addressable tile (LOAD_A / LOAD_B / LOAD_JOB / LOAD_NONCE / COMPUTE / READ_RES → RESULT + paired RECEIPT). On-die receipt emission is the G4 silicon-anchored DePIN attestation.
 - `trinity_router_2x2.v` — single-hop crossbar with 4 tile ports + host port (round-robin return). Honest name: **minimal mesh fabric v0**, not a full XY-routed mesh yet
 - `trinity_mesh_2x2.v` — 4 tiles + 1 router wired as the fabric
 - `trinity_master_fsm.v` — CPU-less host FSM, canned `[1,2,3,4]·[1,2,3,4]` boot sequence
@@ -44,13 +44,29 @@ future radio / Ethernet / mesh adapters will plug into.
 
 ### Packet format (32 bits)
 ```
-[31:28] op       4'h1 LOAD_A | 4'h2 LOAD_B | 4'h3 COMPUTE | 4'h4 RESULT | 4'h5 READ_RES
-[27:26] dst      flat tile id 0..3
-[25:24] src      flat tile id of sender (host uses 0)
-[23:20] lane     0..3 for operand lanes
-[19:16] rsv
-[15:0]  payload  GF16 operand or result
+standard packet (op != RECEIPT):
+  [31:28] op       4'h1 LOAD_A | 4'h2 LOAD_B | 4'h3 COMPUTE | 4'h4 RESULT |
+                   4'h5 READ_RES | 4'h7 LOAD_JOB | 4'h8 LOAD_NONCE
+  [27:26] dst      flat tile id 0..3
+  [25:24] src      flat tile id of sender (host uses 0)
+  [23:20] lane     0..3 for operand lanes
+  [19:16] rsv
+  [15:0]  payload  GF16 operand or result (LOAD_JOB/NONCE take low 8 bits)
+
+receipt packet (op == 4'h6 TRN_OP_RECEIPT, emitted on-die after every RESULT):
+  [31:28] op       4'h6 RECEIPT
+  [27:26] dst      host id (always 0 in v0)
+  [25:24] tile_id  the producing tile (signed-by silicon attribution)
+  [23:20] op_code  echoes the settled op (4'h3 COMPUTE for v0)
+  [19:16] rsv
+  [15:8]  checksum (job_id_q ^ result_q[7:0]) & 0xFF  -- pure XOR-fold
+  [7:0]   job_lo   persisted job_id_q (low 8 bits)
 ```
+
+The `checksum` field matches
+`tools/receipt_verifier/tri_receipt_verifier.compute_checksum(job_id, observed)`
+byte-for-byte — silicon ↔ host contract closed by
+`tools/receipt_verifier/test_g4_verifier.py::T8 chip_emitted_packet`.
 
 ## TinyTapeout pinout
 Unchanged from the previous submission (`info.yaml`). `ui_in[0]` doubles as
@@ -94,22 +110,26 @@ and exposed by two synthesizable boundary stubs:
   radio / backhaul module (LoRa / ESP32 / etc.). No LoRa/Wi-Fi PHY in fabric.
   Not wired into the TT top.
 
-Receipt-format constants for off-chip TRI settlement (`compute_job_id`,
-`tile_id`, `op_code`, `result`, `nonce`, `checksum`) are reserved in
-[`src/trinity_packet.vh`](src/trinity_packet.vh) — see the `TRN_RCPT_*`
-block. Tiles do NOT emit receipts in v0; constants are committed so gate
-G4 can light them up without renumbering.
+**G4 silicon-anchored receipts (new):** every tile now emits a paired
+`TRN_OP_RECEIPT = 4'h6` packet immediately after its `RESULT` handshake,
+carrying `(tile_id, op_code, checksum, job_id_lo)`. The checksum is the same
+`(job_id ^ result_lo) & 0xFF` XOR-fold that
+[`tri_receipt_verifier.compute_checksum()`](tools/receipt_verifier/tri_receipt_verifier.py)
+uses on the host, so a host verifier can attribute work to this node
+byte-for-byte. `R-SI-1` is preserved — zero new multipliers; the checksum
+is pure XOR. TRI token settlement itself remains **off-chip** per
+[`docs/TRINITY_DEPIN_NODE.md`](docs/TRINITY_DEPIN_NODE.md) §5–§6.
 
 ## Roadmap — next gates
 
 | Gate | Deliverable                                                           | Status      |
 |------|-----------------------------------------------------------------------|-------------|
 | G0   | On-die 32-bit packet fabric + 4 GF16 tiles + CPU-less FSM             | **done (PR #2)** |
-| G1   | USB-3 FIFO loopback on dev FPGA + FT601 breakout                      | planned     |
-| G2   | UART/USB packet parser (byte stream ↔ 32-bit Trinity packet)         | planned     |
-| G3   | 2× node mesh demo over the external radio adapter                     | planned     |
-| G4   | TRI receipt verifier (host SW + on-die receipt emission)              | planned     |
-| G5   | Custom Trinity DePIN carrier board (FPGA + FT601 + radio)             | planned     |
+| G1   | USB-3 FIFO loopback on dev FPGA + FT601 breakout                      | GREEN in sim |
+| G2   | UART/USB packet parser (byte stream ↔ 32-bit Trinity packet)         | GREEN in sim |
+| G3   | 2× node mesh demo over the external radio adapter                     | spec frozen  |
+| G4   | TRI receipt verifier (host SW + on-die receipt emission)              | **done — silicon-anchored** |
+| G5   | Custom Trinity DePIN carrier board (FPGA + FT601 + radio)             | spec frozen  |
 
 Until G3 is demonstrated on real hardware, this project will NOT claim a full
 external mesh implementation, and the term "ternary internet" stays a

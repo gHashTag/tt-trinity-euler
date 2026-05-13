@@ -135,34 +135,73 @@ The boundary module is `src/trinity_mesh_adapter_stub.v`. It exposes the
 same `(pkt, valid, ready)` shape as the USB bridge so the eventual board
 top can fan both into the same on-die router.
 
-## 6. Compute receipts (off-chip settlement, on-chip determinism)
+## 6. Compute receipts (silicon-anchored, off-chip settlement)
 
-The FPGA never holds TRI tokens. What it **does** do is emit a receipt
-field next to every RESULT packet so a host-side verifier (or, later, a
-zk-proof generator) can attribute work to this node.
+The FPGA never holds TRI tokens, but **as of TRI-NET-CHIP-G4 the chip
+itself emits a deterministic receipt packet** on the same packet bus,
+right after every `RESULT` handshake. A host-side verifier can therefore
+attribute work to this node by checking a value the silicon produced —
+not a value the host wrote into a JSONL.
 
-Proposed receipt fields, carried alongside or following a `RESULT` packet:
+### 6.1 Wire-level RECEIPT packet (32 bits, op = `TRN_OP_RECEIPT` = 4'h6)
 
-| field           | width  | meaning                                            |
-|-----------------|--------|----------------------------------------------------|
-| `compute_job_id`| 16b    | host-assigned id of the job being settled          |
-| `tile_id`       | 2b     | which on-die tile produced the result              |
-| `op_code`       | 4b     | which op was executed (matches packet `op` field)  |
-| `result`        | 16b    | the GF16 (or future ternary) scalar/vector word    |
-| `nonce`         | 16b    | per-job freshness, supplied by host                |
-| `checksum`      | 8b     | XOR-fold placeholder; real MAC is host-side in v0  |
+| bits     | field      | meaning                                                       |
+|----------|------------|---------------------------------------------------------------|
+| [31:28]  | op         | `4'h6` — RECEIPT                                              |
+| [27:26]  | dst        | host id (always 0 in v0)                                      |
+| [25:24]  | tile_id    | the producing tile (silicon attribution)                      |
+| [23:20]  | op_code    | which op was settled (`4'h3` COMPUTE for v0)                  |
+| [19:16]  | reserved   | `4'h0`                                                        |
+| [15:8]   | checksum   | `(job_id_q ^ result_q[7:0]) & 0xFF` — pure XOR-fold           |
+| [7:0]    | job_id_lo  | persisted `job_id_q` (low 8 bits)                             |
 
-These are placeholders defined in
-`src/trinity_packet.vh` (see the `TRN_RCPT_*` section). They are **not**
-yet emitted by the tiles in this PR; v0 still uses the single-word RESULT
-packet. The constants are committed so the next gate (G4) can add receipt
-emission without renumbering anything.
+The checksum is the **same** XOR-fold that
+`tools/receipt_verifier/tri_receipt_verifier.compute_checksum()` computes
+on the host (low 8 bits of `(job_id ^ observed_payload)`), which means
+the silicon ↔ host contract is verifiable byte-for-byte.
+[`tools/receipt_verifier/test_g4_verifier.py::T8`](../tools/receipt_verifier/test_g4_verifier.py)
+closed this loop by decoding a chip-shaped 32-bit word and feeding it
+through `verify_one()`.
 
-**Settlement** (TRI accrual / payment) happens *off-chip* in the host SW
-ledger. The FPGA's contract is only: "for the same `(job_id, nonce,
-operands)`, this node returns the same `(result, tile_id, op_code)`."
-That determinism is what makes a future ZK or fraud-proof attestation
-possible.
+The original wider receipt schema is retained for the host-side JSONL
+record that the verifier consumes:
+
+| field           | width  | source                                              |
+|-----------------|--------|-----------------------------------------------------|
+| `compute_job_id`| 16b    | host (full 16-bit job_id; chip carries low 8 bits)  |
+| `tile_id`       | 2b     | **chip** (RECEIPT.tile_id)                          |
+| `op_code`       | 4b     | **chip** (RECEIPT.op_code)                          |
+| `result`        | 16b    | **chip** (preceding RESULT.payload)                 |
+| `nonce`         | 16b    | host (sent in `LOAD_NONCE`; chip persists low 8 b)  |
+| `checksum`      | 8b     | **chip** (RECEIPT.checksum, XOR-fold)               |
+
+### 6.2 New op-codes used by G4
+
+* `TRN_OP_LOAD_JOB   = 4'h7` — host → tile, sets `job_id_q` (low 8 bits of payload).
+* `TRN_OP_LOAD_NONCE = 4'h8` — host → tile, sets `nonce_q`  (low 8 bits of payload).
+* `TRN_OP_RECEIPT    = 4'h6` — tile → host, paired with every RESULT handshake.
+
+The master FSM (`src/trinity_master_fsm.v`) now boots with
+`LOAD_A × 4 → LOAD_B × 4 → LOAD_JOB(0x01) → LOAD_NONCE(0x55) → COMPUTE → READ_RES`
+and latches both `result_reg` (RESULT.payload) and
+`{rcpt_checksum_q, rcpt_job_id_q, rcpt_tile_id_q, rcpt_valid_q}`
+(RECEIPT fields) for off-chip readout.
+
+### 6.3 Determinism contract (unchanged)
+
+**Settlement** (TRI accrual / payment) still happens *off-chip* in the
+host SW ledger. The FPGA's contract is now stronger than v0: "for the
+same `(job_id, nonce, operands)` this node returns the same
+`(result, tile_id, op_code, checksum)` — and the `checksum` was
+computed in silicon, not host code." That determinism is what makes a
+future ZK or fraud-proof attestation possible without trusting the host.
+
+### 6.4 R-SI-1 honesty
+
+The checksum is an 8-bit XOR-fold; no `*` operator was introduced in any
+new RTL. R-SI-1 ("zero NEW multipliers") is preserved. A future
+revision can swap the XOR for a hardware HMAC/Poseidon hash without
+changing the packet layout above.
 
 ## 7. Product-board path (the next several gates)
 
