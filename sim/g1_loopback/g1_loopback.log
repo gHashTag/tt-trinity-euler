@@ -1,0 +1,6 @@
+VCD info: dumpfile tb_g1_loopback.vcd opened for output.
+=== G1 USB-3 LOOPBACK ===
+INFO drained canned-FSM RESULT 0x400047c0
+=== G1 RESULT: 100/100 passes, 0 fails ===
+G1_GATE_GREEN: 100/100 0x47C0 received
+tb_g1_loopback.v:225: $finish called at 61675000 (1ps)

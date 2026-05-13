@@ -12,7 +12,7 @@ project:
   language:     "Verilog"
   clock_hz:     50000000
 
-  tiles: "1x1"
+  tiles: "2x2"  # bumped 1x1 -> 2x2 in PR #2 to accommodate 4 GF16 tiles + 2x2 router + master FSM (OpenROAD DPL-0036 fix)
 
   top_module:  "tt_um_ghtag_trinity_gf16"
 
@@ -21,6 +21,10 @@ project:
     - "gf16_mul.v"
     - "gf16_add.v"
     - "gf16_dot4.v"
+    - "trinity_gf16_tile.v"
+    - "trinity_router_2x2.v"
+    - "trinity_mesh_2x2.v"
+    - "trinity_master_fsm.v"
 
 pinout:
   ui[0]: "load_mode"

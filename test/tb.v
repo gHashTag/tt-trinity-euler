@@ -31,7 +31,7 @@ module tb ();
 
   always #10 clk = ~clk;
 
-  integer pass_count, fail_count;
+  integer pass_count, fail_count, cycle_cnt;
 
   initial begin
     pass_count = 0;
@@ -49,16 +49,17 @@ module tb ();
 
     $display("=== TT Trinity GF16 Tests ===");
 
+    // ---- T1: legacy combinational dot4 visible immediately after reset ----
     // dot4([1,2,3,4], [1,2,3,4]) = 1+4+9+16 = 30 = 0x47C0
     if ({uio_out, uo_out} === 16'h47C0) begin
       pass_count = pass_count + 1;
-      $display("PASS dot4_result: 0x47C0 = 30.0");
+      $display("PASS legacy_dot4_result: 0x47C0 = 30.0");
     end else begin
       fail_count = fail_count + 1;
-      $display("FAIL dot4_result: got 0x%h%h expected 0x47C0", uio_out, uo_out);
+      $display("FAIL legacy_dot4_result: got 0x%h%h expected 0x47C0", uio_out, uo_out);
     end
 
-    // uio_oe must be 0xFF (all outputs enabled)
+    // ---- T2: uio_oe must be 0xFF ----
     if (uio_oe === 8'hFF) begin
       pass_count = pass_count + 1;
       $display("PASS uio_oe");
@@ -67,9 +68,42 @@ module tb ();
       $display("FAIL uio_oe: 0x%h", uio_oe);
     end
 
+    // ---- T3: Trinity v0 mesh fabric end-to-end ----
+    // Master FSM drives 4xLOAD_A + 4xLOAD_B + COMPUTE + READ_RES packets to tile 0
+    // and latches a RESULT packet with the dot product (== 30.0 == 0x47C0).
+    // Generous cycle budget: 8 loads + 1 compute + 1 read + 1 result return ~= 12-16 cycles.
+    for (cycle_cnt = 0; cycle_cnt < 64; cycle_cnt = cycle_cnt + 1)
+      @(posedge clk);
+
+    if (user_project.mesh_result_valid === 1'b1 &&
+        user_project.mesh_result === 16'h47C0) begin
+      pass_count = pass_count + 1;
+      $display("PASS mesh_result: 0x47C0 from tile 0 via packet fabric");
+    end else begin
+      fail_count = fail_count + 1;
+      $display("FAIL mesh_result: valid=%b value=0x%h",
+               user_project.mesh_result_valid, user_project.mesh_result);
+    end
+
+    // ---- T4: outputs reflect mesh result after FSM completes ----
+    if ({uio_out, uo_out} === 16'h47C0) begin
+      pass_count = pass_count + 1;
+      $display("PASS final_outputs_post_mesh: 0x47C0");
+    end else begin
+      fail_count = fail_count + 1;
+      $display("FAIL final_outputs_post_mesh: 0x%h%h", uio_out, uo_out);
+    end
+
     $display("Results: %0d pass, %0d fail", pass_count, fail_count);
     if (fail_count > 0) $display("SOME TESTS FAILED");
     else $display("ALL TESTS PASSED");
+    $finish;
+  end
+
+  // Watchdog
+  initial begin
+    #100000;
+    $display("WATCHDOG TIMEOUT");
     $finish;
   end
 

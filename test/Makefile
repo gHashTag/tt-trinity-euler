@@ -3,7 +3,7 @@ SIM ?= icarus
 FST ?= -fst
 TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
-PROJECT_SOURCES = tt_um_ghtag_trinity_gf16.v gf16_mul.v gf16_add.v gf16_dot4.v
+PROJECT_SOURCES = tt_um_ghtag_trinity_gf16.v gf16_mul.v gf16_add.v gf16_dot4.v trinity_gf16_tile.v trinity_router_2x2.v trinity_mesh_2x2.v trinity_master_fsm.v
 
 ifneq ($(GATES),yes)
 SIM_BUILD = sim_build/rtl
