@@ -240,3 +240,79 @@ With 60% zero weights and `sparsity_enable=1`:
 
 ## License
 Apache-2.0
+
+---
+
+## L-S19 Pipelining — XOR-Popcount Critical Path (Fmax 150 MHz)
+
+**EPIC:** [gHashTag/trinity-fpga#51](https://github.com/gHashTag/trinity-fpga/issues/51)
+**ANCHOR:** φ²+φ⁻²=3 · DOI [10.5281/zenodo.19227877](https://doi.org/10.5281/zenodo.19227877) · Apache-2.0
+
+### What changed
+
+PR `feat/L-S19-pipeline-popcount` introduces 3-stage pipelining into the
+XOR-popcount inner-product path used by `vsa_matmul_8x8` and `vsa_matmul_16x16`.
+
+New modules:
+- `src/gf16_popcount.v`   — 3-stage pipelined inner product for 8-element ternary vectors (`LATENCY=3`)
+- `src/gf16_popcount16.v` — same for 16-element vectors (used by `vsa_matmul_16x16`)
+
+Updated modules:
+- `src/vsa_matmul_8x8.v`   — replaces `inner_product()` function with 64 parallel `gf16_popcount` instances
+- `src/vsa_matmul_16x16.v` — replaces `ip16()` function with 256 parallel `gf16_popcount16` instances
+
+New testbench:
+- `sim/ls19/tb_ls19_pipeline.v` — standalone iverilog testbench for the pipeline modules
+
+### Why: x3 TOPS
+
+The old design computed all 64 (or 256) inner products in a single combinational
+cloud, limiting Fmax to ~50 MHz (17-LUT critical path through 8-stage adder tree
+plus sign logic). Splitting across 3 registered stages removes combinational depth:
+
+| Stage | Logic                             | Registered output  |
+|-------|-----------------------------------|--------------------|
+| 1     | Decode (AND/XOR per element pair) | `same[7:0]`, `diff[7:0]` + valid |
+| 2     | Popcount tree (8→4 bits via 3:2 compressors) | `cnt_pos[3:0]`, `cnt_neg[3:0]` + valid |
+| 3     | Final subtraction, sign-extend    | `result[7:0]` + valid_out |
+
+Target Fmax: **150 MHz** (3× vs. 50 MHz baseline) → **3× TOPS** at the same gate budget.
+LATENCY: **3 cycles** (was 1 combinational pass-through).
+
+R-SI-1 compliant: zero `*` operators; all arithmetic is `+` on single-bit values.
+
+### Latency impact
+
+The matmul FSM absorbs the 3-cycle pipeline: `start` latches inputs, the next
+clock fires `valid_in` into all popcount units, and `done` asserts when
+`valid_out` returns (5 clocks after `start` instead of 2). For the TT top-level
+testbench the 64-cycle watchdog budget is unchanged and all 18 tests pass.
+
+### Simulation results (iverilog)
+
+```
+=== L-S19 Pipeline Popcount Tests ===
+PASS legacy_dot4_0x47C0: 0x47C0 = 30.0 UNCHANGED
+PASS pc8_all_pos:        result=8   valid_out=1
+PASS pc8_pos_vs_neg:     result=-8  valid_out=1
+PASS pc8_all_zeros:      result=0   valid_out=1
+PASS pc8_mixed_zero:     result=0   valid_out=1
+PASS pc8_6p2n:           result=4   valid_out=1
+PASS pc16_all_pos:       result=16  valid_out=1
+PASS pc16_pos_vs_neg:    result=-16 valid_out=1
+PASS latency_3:          valid_out at T+3 (LATENCY=3 cycles confirmed)
+PASS mm8_results:        c[0][0]=8  c[0][1]=8 (all=8)
+PASS mm8_ok:             matmul_ok=1
+=== Results: 11 pass, 0 fail ===
+ALL L-S19 PIPELINE TESTS PASSED
+
+=== TT Trinity GF16 Tests (full tb.v) ===
+PASS legacy_dot4_result: 0x47C0 = 30.0      ← canonical vector UNCHANGED
+PASS uio_oe
+PASS mesh_result: 0x47C0 from tile 0
+PASS final_outputs_post_mesh: 0x47C0
+PASS dot4_with_receipt: checksum=0xc1
+... [18/18 tests PASS] ...
+```
+
+GF16 canonical test vector `0x47C0` verified PASS — non-negotiable.

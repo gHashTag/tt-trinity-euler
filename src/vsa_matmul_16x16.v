@@ -3,8 +3,16 @@
 // Apache-2.0
 //
 // PhD anchor: Chapter 35 (CROWN) — large-scale ternary VSA inference.
-// 4x area of vsa_matmul_8x8 (~3200 gates). R-SI-1: zero `*` operators.
+// 4x area of vsa_matmul_8x8. R-SI-1: zero `*` operators.
 // Each element 2 bits {00=+1, 01=-1, 10=0, 11=0}. Result is signed 8-bit.
+//
+// L-S19: Uses gf16_popcount16 (3-stage pipeline, 16 elements).
+//        Fmax target: 150 MHz. LATENCY=3 cycles.
+//
+// Latency from start: 1 (latch) + 1 (valid pulse) + 3 (pipeline) = 5 cycles.
+//
+// Encoding (per element, 2 bits):
+//   00 = +1   01 = -1   10 = 0   11 = 0
 
 module vsa_matmul_16x16 (
     input  wire         clk,
@@ -17,58 +25,78 @@ module vsa_matmul_16x16 (
     output wire          matmul_ok
 );
 
+    localparam LATENCY = 3;  // L-S19: 3-stage pipeline
+
     reg [511:0] a_reg, b_reg;
     reg         busy;
+    reg         pipe_valid_in;
 
-    function [7:0] ip16;
-        input [31:0] a_row;   // 16 elements × 2 bits
-        input [31:0] b_row;
-        integer k;
-        reg signed [7:0] acc;
-        reg [1:0] ae, be;
-        reg azero, bzero;
-        begin
-            acc = 0;
-            for (k = 0; k < 16; k = k + 1) begin
-                ae = a_row[2*k +: 2];
-                be = b_row[2*k +: 2];
-                azero = ae[1];
-                bzero = be[1];
-                if (!azero && !bzero) begin
-                    if (ae[0] == be[0]) acc = acc + 8'sd1;
-                    else                acc = acc - 8'sd1;
-                end
+    // 256 pipelined inner-product units (16×16)
+    wire [255:0] pc_valid_out;
+    wire [7:0]   pc_result [0:255];
+
+    genvar gi, gj;
+    generate
+        for (gi = 0; gi < 16; gi = gi + 1) begin : gen_row
+            for (gj = 0; gj < 16; gj = gj + 1) begin : gen_col
+                gf16_popcount16 #(.N_ELEMS(16), .LATENCY(LATENCY)) u_pc (
+                    .clk      (clk),
+                    .rst_n    (rst_n),
+                    .valid_in (pipe_valid_in),
+                    .a_row    (a_reg[32*gi +: 32]),
+                    .b_row    (b_reg[32*gj +: 32]),
+                    .valid_out(pc_valid_out[gi*16 + gj]),
+                    .result   (pc_result[gi*16 + gj])
+                );
             end
-            ip16 = acc;
         end
-    endfunction
+    endgenerate
 
-    integer i, j;
-    reg [7:0] tmp;
+    reg [1:0] state;
+    localparam ST_IDLE  = 2'd0;
+    localparam ST_LATCH = 2'd1;
+    localparam ST_PIPE  = 2'd2;
+    localparam ST_DONE  = 2'd3;
 
+    integer ci, cj;
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            a_reg  <= 512'b0;
-            b_reg  <= 512'b0;
-            c_flat <= 2048'b0;
-            busy   <= 1'b0;
-            done   <= 1'b0;
+            a_reg        <= 512'b0;
+            b_reg        <= 512'b0;
+            c_flat       <= 2048'b0;
+            busy         <= 1'b0;
+            done         <= 1'b0;
+            pipe_valid_in <= 1'b0;
+            state        <= ST_IDLE;
         end else begin
-            done <= 1'b0;
-            if (start && !busy) begin
-                a_reg <= a_flat;
-                b_reg <= b_flat;
-                busy  <= 1'b1;
-            end else if (busy) begin
-                for (i = 0; i < 16; i = i + 1) begin
-                    for (j = 0; j < 16; j = j + 1) begin
-                        tmp = ip16(a_reg[32*i +: 32], b_reg[32*j +: 32]);
-                        c_flat[ (i*16 + j)*8 +: 8 ] <= tmp;
+            done          <= 1'b0;
+            pipe_valid_in <= 1'b0;
+
+            case (state)
+                ST_IDLE: begin
+                    if (start) begin
+                        a_reg <= a_flat;
+                        b_reg <= b_flat;
+                        busy  <= 1'b1;
+                        state <= ST_LATCH;
                     end
                 end
-                done <= 1'b1;
-                busy <= 1'b0;
-            end
+                ST_LATCH: begin
+                    pipe_valid_in <= 1'b1;
+                    state <= ST_PIPE;
+                end
+                ST_PIPE: begin
+                    if (pc_valid_out[0]) begin
+                        for (ci = 0; ci < 16; ci = ci + 1)
+                            for (cj = 0; cj < 16; cj = cj + 1)
+                                c_flat[(ci*16 + cj)*8 +: 8] <= pc_result[ci*16 + cj];
+                        done  <= 1'b1;
+                        busy  <= 1'b0;
+                        state <= ST_IDLE;
+                    end
+                end
+                default: state <= ST_IDLE;
+            endcase
         end
     end
 
