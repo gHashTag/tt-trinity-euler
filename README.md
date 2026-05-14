@@ -35,8 +35,9 @@ future radio / Ethernet / mesh adapters will plug into.
 
 ### Modules (synthesizable, Apache-2.0)
 - `gf16_mul.v`, `gf16_add.v`, `gf16_dot4.v` — existing combinational GF16 demo
+- `gf16_dot8.v` — **L-S20** 8-lane dot product: two `gf16_dot4` units in parallel + one `gf16_add` accumulator; delivers **2× TOPS/tile** at ~2× MAC area with no impact on the canonical `dot4` primitive
 - `trinity_packet.vh` — 32-bit packet format constants (op, dst, src, lane, payload)
-- `trinity_gf16_tile.v` — wraps `gf16_dot4` as a packet-addressable tile (LOAD_A / LOAD_B / LOAD_JOB / LOAD_NONCE / COMPUTE / READ_RES → RESULT + paired RECEIPT). On-die receipt emission is the G4 silicon-anchored DePIN attestation.
+- `trinity_gf16_tile.v` — wraps `gf16_dot4` (or `gf16_dot8` when `DOT_WIDTH=8`) as a packet-addressable tile (LOAD_A / LOAD_B / LOAD_JOB / LOAD_NONCE / COMPUTE / READ_RES → RESULT + paired RECEIPT). On-die receipt emission is the G4 silicon-anchored DePIN attestation. Lanes 4–7 are available for `DOT_WIDTH=8`.
 - `trinity_router_2x2.v` — single-hop crossbar with 4 tile ports + host port (round-robin return). Honest name: **minimal mesh fabric v0**, not a full XY-routed mesh yet
 - `trinity_mesh_2x2.v` — 4 tiles + 1 router wired as the fabric
 - `trinity_master_fsm.v` — CPU-less host FSM, canned `[1,2,3,4]·[1,2,3,4]` boot sequence
@@ -75,11 +76,35 @@ Unchanged from the previous submission (`info.yaml`). `ui_in[0]` doubles as
 ## Test
 - **Legacy:** `dot4([1,2,3,4], [1,2,3,4]) = 30.0 = 0x47C0` — visible immediately on `{uio_out, uo_out}`.
 - **Mesh:** the same value reached via the packet protocol after ~20 cycles. `tb.v` covers both paths.
+- **L-S20 dot8:** `sim/tb_gf16_dot8.v` — 16 diverse vectors + canonical 0x47C0 re-check; all 17 tests PASS.
 
 ```bash
 cd test
 make            # cocotb + iverilog
+
+# Standalone dot8 sim (iverilog):
+iverilog -o /tmp/sim_dot8 src/gf16_mul.v src/gf16_add.v src/gf16_dot4.v \
+  src/gf16_dot8.v sim/tb_gf16_dot8.v && /tmp/sim_dot8
 ```
+
+## L-S20 dot8 expansion (EPIC gHashTag/trinity-fpga#51)
+
+| Metric | dot4 (before) | dot8 (L-S20) |
+|--------|--------------|---------------|
+| MAC lanes per tile | 4 | 8 |
+| TOPS/tile (relative) | N | **2N** |
+| Extra modules | — | `gf16_dot8.v` |
+| Area (MAC only) | 1× | ~2× MAC area |
+| Canonical 0x47C0 | PASS | **PASS (unchanged)** |
+| Build-time opt-in | (n/a) | `DOT_WIDTH=8` |
+| Backwards compat | yes | `DOT_WIDTH=4` reverts |
+
+`gf16_dot8` = `gf16_dot4(a[0..3], b[0..3])` + `gf16_dot4(a[4..7], b[4..7])`, accumulated
+through a single `gf16_add`. The `dot4` primitive is **not modified** — the 0x47C0 canonical
+test vector is preserved bit-exact. `trinity_gf16_tile` gains a `DOT_WIDTH` parameter
+(default 4) that selects the MAC unit at synthesis time, giving tape-out flexibility.
+Lanes 4–7 are addressed via the existing `LOAD_A`/`LOAD_B` packet ops using `lane[2:0]`
+(values 4–7), fully backwards-compatible with existing `lane[1:0]` traffic.
 
 ## R-SI compliance (silicon constraints)
 - **R-SI-1** Zero NEW multipliers: no `*` introduced in new RTL. `gf16_mul.v:30` keeps its pre-existing 10×10 mantissa multiply (legacy, deliberately not touched in v0).
@@ -130,7 +155,8 @@ is pure XOR. TRI token settlement itself remains **off-chip** per
 | G3   | 2× node mesh demo over the external radio adapter                     | spec frozen  |
 | G4   | TRI receipt verifier (host SW + on-die receipt emission)              | **done — silicon-anchored** |
 | G5   | Custom Trinity DePIN carrier board (FPGA + FT601 + radio)             | spec frozen  |
-| L-S21| φ-prior skip-zero sparsity gating → 2× effective TOPS                | **done (this PR)** |
+| L-S20 | dot8 expansion: 2× dot4 lanes → 2× TOPS/tile (`gf16_dot8.v`, `DOT_WIDTH=8`) | **merged (partial EPIC #51)** |
+| L-S21 | φ-prior skip-zero sparsity gating → 2× effective TOPS                  | **merged (partial EPIC #51)** |
 
 Until G3 is demonstrated on real hardware, this project will NOT claim a full
 external mesh implementation, and the term "ternary internet" stays a

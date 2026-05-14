@@ -17,11 +17,20 @@
 // the tile behaves as a real synchronous packet-addressable compute element inside the mesh.
 //
 // R-SI-1 (silicon constraint): no `*` introduced. Checksum is pure XOR-fold.
+//
+// L-S20 dot8 expansion:
+//   DOT_WIDTH=4 (default) → single gf16_dot4, original behaviour preserved.
+//   DOT_WIDTH=8           → gf16_dot8 (2× dot4 + adder); 8 A/B lanes available;
+//                           TOPS per tile doubles; canonical 0x47C0 vector unaffected.
 
 `include "trinity_packet.vh"
 
 module trinity_gf16_tile #(
-    parameter [1:0] TILE_ID = 2'b00
+    parameter [1:0]   TILE_ID   = 2'b00,
+    // DOT_WIDTH: build-time selector for MAC unit width.
+    // 4 → dot4 (original, backwards-compatible).
+    // 8 → dot8 (L-S20: 2× dot4 lanes, 2× TOPS/tile).
+    parameter integer DOT_WIDTH = 4
 ) (
     input  wire                    clk,
     input  wire                    rst_n,
@@ -40,9 +49,12 @@ module trinity_gf16_tile #(
     output wire [15:0]             dbg_result
 );
 
-    // Operand registers
+    // Operand registers — dot4 lanes
     reg [15:0] a0, a1, a2, a3;
     reg [15:0] b0, b1, b2, b3;
+    // Extra lanes for dot8 (unused / tied to zero in dot4 mode)
+    reg [15:0] a4, a5, a6, a7;
+    reg [15:0] b4, b5, b6, b7;
     reg [15:0] result_q;
     reg        result_valid;
 
@@ -52,13 +64,26 @@ module trinity_gf16_tile #(
     reg [1:0]  rcpt_dst;          // remembered host src so the RECEIPT goes back to the host
     reg        pending_receipt;   // set after RESULT handshake; cleared after RECEIPT handshake
 
-    // Combinational dot4 over current latched operands
+    // Combinational MAC unit — selected at build time by DOT_WIDTH parameter
     wire [15:0] dot_out;
-    gf16_dot4 u_dot (
-        .a0(a0), .a1(a1), .a2(a2), .a3(a3),
-        .b0(b0), .b1(b1), .b2(b2), .b3(b3),
-        .result(dot_out)
-    );
+    generate
+        if (DOT_WIDTH == 8) begin : g_dot8
+            gf16_dot8 u_dot (
+                .a0(a0), .a1(a1), .a2(a2), .a3(a3),
+                .b0(b0), .b1(b1), .b2(b2), .b3(b3),
+                .a4(a4), .a5(a5), .a6(a6), .a7(a7),
+                .b4(b4), .b5(b5), .b6(b6), .b7(b7),
+                .result(dot_out)
+            );
+        end else begin : g_dot4
+            // DOT_WIDTH == 4 — original behaviour, backwards-compatible
+            gf16_dot4 u_dot (
+                .a0(a0), .a1(a1), .a2(a2), .a3(a3),
+                .b0(b0), .b1(b1), .b2(b2), .b3(b3),
+                .result(dot_out)
+            );
+        end
+    endgenerate
 
     // Accept any packet addressed to us when out FIFO slot is free
     assign in_ready = !out_valid || out_ready;
@@ -78,6 +103,8 @@ module trinity_gf16_tile #(
         if (!rst_n) begin
             a0 <= 16'h0; a1 <= 16'h0; a2 <= 16'h0; a3 <= 16'h0;
             b0 <= 16'h0; b1 <= 16'h0; b2 <= 16'h0; b3 <= 16'h0;
+            a4 <= 16'h0; a5 <= 16'h0; a6 <= 16'h0; a7 <= 16'h0;
+            b4 <= 16'h0; b5 <= 16'h0; b6 <= 16'h0; b7 <= 16'h0;
             result_q <= 16'h0;
             result_valid <= 1'b0;
             job_id_q  <= 8'h00;
@@ -109,19 +136,27 @@ module trinity_gf16_tile #(
             if (in_valid && in_ready && pkt_for_me) begin
                 case (op)
                     `TRN_OP_LOAD_A: begin
-                        case (lane[1:0])
-                            2'd0: a0 <= pl;
-                            2'd1: a1 <= pl;
-                            2'd2: a2 <= pl;
-                            2'd3: a3 <= pl;
+                        case (lane[2:0])
+                            3'd0: a0 <= pl;
+                            3'd1: a1 <= pl;
+                            3'd2: a2 <= pl;
+                            3'd3: a3 <= pl;
+                            3'd4: a4 <= pl;  // dot8 upper lane 4
+                            3'd5: a5 <= pl;  // dot8 upper lane 5
+                            3'd6: a6 <= pl;  // dot8 upper lane 6
+                            3'd7: a7 <= pl;  // dot8 upper lane 7
                         endcase
                     end
                     `TRN_OP_LOAD_B: begin
-                        case (lane[1:0])
-                            2'd0: b0 <= pl;
-                            2'd1: b1 <= pl;
-                            2'd2: b2 <= pl;
-                            2'd3: b3 <= pl;
+                        case (lane[2:0])
+                            3'd0: b0 <= pl;
+                            3'd1: b1 <= pl;
+                            3'd2: b2 <= pl;
+                            3'd3: b3 <= pl;
+                            3'd4: b4 <= pl;  // dot8 upper lane 4
+                            3'd5: b5 <= pl;  // dot8 upper lane 5
+                            3'd6: b6 <= pl;  // dot8 upper lane 6
+                            3'd7: b7 <= pl;  // dot8 upper lane 7
                         endcase
                     end
                     `TRN_OP_LOAD_JOB: begin
