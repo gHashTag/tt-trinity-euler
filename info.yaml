@@ -1,14 +1,48 @@
 # Tiny Tapeout project information
 project:
-  title:        "Trinity GF16 Dot Product Accelerator"
+  title:        "TRI-1 Mid — Trinity GF16 16-cell SUPER-CROWN SoC"
   author:       "Dmitrii Vasilev · Trinity Stack"
   discord:      "t27_dev"
   description:  |
-    GF16 (Golden Float 16-bit, bias=31) dot product N=4. FPGA-validated at 323 MHz on XC7A100T.
-    Apache 2.0. Anchor theorem: phi^2 + phi^-2 = 3 (Trinity identity, 84-theorem Coq base in t27).
-    DOI: 10.5281/zenodo.19227877. Provenance: gHashTag/trinity-fpga#19, R-SI compliance map in
-    gHashTag/trios assertions/igla_assertions.json. Step 1 of L-DPC3->L-DPC4->L-DPC5 silicon
-    roadmap toward TRL 7 silicon-validation for PhD defense 2026-06-15.
+    TRI-1 Mid is the flagship middle-SKU of the TRI-1 Triad submitted to
+    TTSKY26b (siblings: tt-trinity-nano 1x1, tt-trinity-max 2x2). It packs
+    a 4-tile GF16(2^4) ternary MAC mesh together with 15 SUPER-CROWN
+    modules into an 8x2 tile footprint: phi_anchor_post + lucas_rom (proves
+    phi^2 + phi^-2 = 3 on power-up via Lucas recurrence), vsa_matmul_8x8 +
+    vsa_matmul_16x16 (ternary VSA), bitnet_encoder (BitNet b1.58 ternary
+    MLP), bpb_counter (on-chip cross-entropy/BPB), blake3_anchor +
+    multi_tile_receipt + crc32_receipt + hwrng_lfsr (G4 DePIN signing),
+    alu9_decoder (9-instruction Trinity ternary ALU, t27 ISA preview),
+    ring27_memory (27-cell 3^3 ternary memory), phi_pll_div, wishbone_full,
+    wb_status_reg. FPGA-validated at 323 MHz on XC7A100T; silicon target
+    50 MHz @ SKY130A 60% density.
+
+    Ten chip-market differentiators (no competitor has all ten — Hailo-8,
+    MediaTek D9400 NPU890, QC Cloud AI 100 Ultra, Axelera Metis M.2,
+    Google Coral Edge TPU all miss at least two):
+      (1) native ternary {-1,0,+1} MAC silicon;
+      (2) on-chip BLAKE3 receipt signer (G4 DePIN);
+      (3) POST self-test via phi^2 + phi^-2 = 3 Lucas chain;
+      (4) 0 DSP / 0 new `*` in synthesisable RTL (R-SI-1);
+      (5) BitNet b1.58-style ternary MLP encoder on-chip;
+      (6) RING27 27-cell ternary memory (3^3);
+      (7) Trinity 9-instruction ternary ALU (t27 ISA preview);
+      (8) on-chip BPB / cross-entropy counter;
+      (9) Apache-2.0 + fully open PDK (SKY130A);
+      (10) DOI-anchored + Coq-verified provenance — t27/trios-coq carries
+           297 Qed and 141 Admitted at submission (the older "84 theorems"
+           figure is folklore predating the 2026-05-12 consolidation and is
+           explicitly retired here).
+
+    Anchor: phi^2 + phi^-2 = 3 (Trinity algebraic identity).
+    DOI: 10.5281/zenodo.19227877.
+    PhD chapter: trios docs/phd/chapters/flos_70.tex (Ch. 36 TRI-1 Triad,
+    Theorem 36.1 TG-TRIAD-X — cross-die ledger determinism).
+    Provenance: trinity-fpga#19 (FPGA EPIC), trinity-fpga#49 (L-DPC7
+    TRI-1 Triad EPIC), trios assertions/igla_assertions.json (R-SI
+    compliance), tt-trinity-gf16 docs/architecture/TRI_NET_SHUTTLE_TRIAD.md
+    (canonical Triad architecture spec).
+    Defense: 2026-06-15.
   language:     "Verilog"
   clock_hz:     50000000
 
