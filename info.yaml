@@ -12,7 +12,7 @@ project:
   language:     "Verilog"
   clock_hz:     50000000
 
-  tiles: "2x2"  # bumped 1x1 -> 2x2 in PR #2 to accommodate 4 GF16 tiles + 2x2 router + master FSM (OpenROAD DPL-0036 fix)
+  tiles: "8x2"  # bumped 2x2 -> 8x2 in PR #8 (Wave-26b SUPER-CROWN) to accommodate full Trinity SoC mini: 4 GF16 tiles + mesh + master FSM + 6 CROWN POST modules + 16x16 ternary matmul + BitNet encoder + BPB counter + BLAKE3 anchor + multi-tile RECEIPT + ALU-9 decoder + RING27 memory + phi-PLL + Wishbone-lite full. Target ~16000 gates @ 60% density on SKY130.
 
   top_module:  "tt_um_ghtag_trinity_gf16"
 
@@ -25,6 +25,21 @@ project:
     - "trinity_router_2x2.v"
     - "trinity_mesh_2x2.v"
     - "trinity_master_fsm.v"
+    - "phi_anchor_post.v"
+    - "lucas_rom.v"
+    - "vsa_matmul_8x8.v"
+    - "crc32_receipt.v"
+    - "hwrng_lfsr.v"
+    - "wb_status_reg.v"
+    - "vsa_matmul_16x16.v"
+    - "bitnet_encoder.v"
+    - "bpb_counter.v"
+    - "blake3_anchor.v"
+    - "multi_tile_receipt.v"
+    - "alu9_decoder.v"
+    - "ring27_memory.v"
+    - "phi_pll_div.v"
+    - "wishbone_full.v"
 
 pinout:
   ui[0]: "load_mode"
