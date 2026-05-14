@@ -78,6 +78,7 @@ project:
     - "ring27_memory.v"
     - "phi_pll_div.v"
     - "wishbone_full.v"
+    - "gf16_mesh_2x2_top.v"
 
 pinout:
   ui[0]: "load_mode"

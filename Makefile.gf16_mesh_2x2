@@ -1,0 +1,44 @@
+# Makefile.gf16_mesh_2x2 — L-S38 TTSKY26c 2×2 GF16 mesh simulation gate
+# Apache-2.0
+#
+# Tests: 4 tile-local dot4 smoke + 50 LFSR random + 6 NoC handshake = 60 minimum
+# Token: GF16_MESH_2X2_GREEN
+#
+# Usage:
+#   make -f Makefile.gf16_mesh_2x2          # compile + run + check
+#   make -f Makefile.gf16_mesh_2x2 clean    # remove build artifacts
+
+ROOT    := .
+SRC_DIR := $(ROOT)/src
+SIM_DIR := $(ROOT)/sim/tri1_v2
+
+SRC := \
+  $(SRC_DIR)/gf16_mul.v \
+  $(SRC_DIR)/gf16_add.v \
+  $(SRC_DIR)/gf16_dot4.v \
+  $(SRC_DIR)/gf16_dot8.v \
+  $(SRC_DIR)/trinity_gf16_tile.v \
+  $(SRC_DIR)/trinity_router_2x2.v \
+  $(SRC_DIR)/gf16_mesh_2x2_top.v \
+  $(SIM_DIR)/tb_gf16_mesh_2x2.v
+
+VVP   := tb_gf16_mesh_2x2.vvp
+LOG   := /tmp/mesh_2x2.log
+FLAGS := -g2012 -I$(SRC_DIR)
+
+.PHONY: all run clean
+
+all: run
+
+$(VVP): $(SRC)
+	iverilog $(FLAGS) -o $(VVP) $(SRC)
+
+run: $(VVP)
+	vvp $(VVP) | tee $(LOG)
+	@grep -q "GF16_MESH_2X2_GREEN" $(LOG) || \
+	  (echo "ERROR: GF16_MESH_2X2_GREEN token not found — simulation FAILED" && exit 1)
+	@echo ""
+	@echo "=== GF16 MESH 2x2 GATE PASSED ==="
+
+clean:
+	rm -f $(VVP) $(LOG) tb_gf16_mesh_2x2.vcd
