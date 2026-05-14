@@ -63,7 +63,10 @@ module trinity_mesh_2x2 (
             assign t_in_pkt[i] = t_pkt_flat[(i+1)*`TRN_PKT_W-1 -: `TRN_PKT_W];
             assign t_ret_pkt_flat[(i+1)*`TRN_PKT_W-1 -: `TRN_PKT_W] = t_out_pkt[i];
 
-            trinity_gf16_tile #(.TILE_ID(i[1:0])) u_tile (
+            // L-S20: enable DOT_WIDTH=8 (gf16_dot8 = 2x dot4 + adder) for 2x TOPS/tile.
+            // Backwards compat: top-level legacy gf16_dot4 instance and the 0x47C0
+            // canonical test path are independent of this tile parameter.
+            trinity_gf16_tile #(.TILE_ID(i[1:0]), .DOT_WIDTH(8)) u_tile (
                 .clk        (clk),
                 .rst_n      (rst_n),
                 .in_pkt     (t_in_pkt[i]),
