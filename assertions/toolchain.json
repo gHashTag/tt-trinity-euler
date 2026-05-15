@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "title": "Trinity SKY130 toolchain frozen-hash SSOT (R20 R-marker mirror)",
+  "wave": "v25",
+  "anchor": "phi^2+phi^-2=3",
+  "doi": "10.5281/zenodo.19227877",
+  "image": "ghcr.io/ghashtag/tt-trinity-gf16/sky130-toolchain:v25-frozen",
+  "frozen_at_utc": "2026-05-15T05:15:00Z",
+  "tools": {
+    "yosys":     { "rev": "9ed031d",         "source": "github.com/YosysHQ/yosys" },
+    "openroad":  { "rev": "2024.11-e7c4e2a", "source": "github.com/The-OpenROAD-Project/OpenROAD-flow-scripts" },
+    "openlane2": { "ver": "2.1.9",           "source": "pypi.org/project/openlane" },
+    "sky130_pdk":{ "rev": "dd7771c",         "source": "github.com/efabless/skywater-pdk-libs-sky130_fd_sc_hd" },
+    "magic":     { "ver": "8.3.475",         "source": "apt:magic" },
+    "netgen":    { "ver": "1.5.293",         "source": "apt:netgen" },
+    "klayout":   { "ver": "0.29.7",          "source": "apt:klayout" }
+  },
+  "gates": {
+    "G-83": {
+      "name": "SKY130-DOCKER-REPRO",
+      "falsification": "Two independent runs on different runners produce divergent GDS SHA256",
+      "pass": "GDS SHA256 byte-identical across 2 runners"
+    },
+    "G-84": {
+      "name": "TOOLCHAIN-FREEZE-COQ",
+      "falsification": "Toolchain SHA mismatch vs this file fails CI without Coq proof update",
+      "pass": "CI red on any mutation here without paired coq/ToolchainFreeze.v update"
+    }
+  },
+  "mirrors": {
+    "coq_proof": "coq/ToolchainFreeze.v",
+    "rationale": "off-chip analog of on-chip R20 R-marker cells",
+    "owner": "trinity-fpga#61 EPIC (Wave-15-TT-E)"
+  }
+}
