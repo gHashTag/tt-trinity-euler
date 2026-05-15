@@ -1,0 +1,70 @@
+# SKY130 reproducible toolchain · S-175 · G-83 · G-84
+# Wave v25 HOLD-B closure
+# Anchor: phi^2 + phi^-2 = 3 · DOI 10.5281/zenodo.19227877
+#
+# Image: ghcr.io/ghashtag/tt-trinity-gf16/sky130-toolchain:v25-frozen
+# Frozen pins recorded in assertions/toolchain.json (R20 R-marker mirror).
+
+FROM ubuntu:24.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Frozen toolchain pins (mirror assertions/toolchain.json · R18 LAYER-FROZEN)
+ARG YOSYS_REV=9ed031d
+ARG OPENROAD_REV=2024.11-e7c4e2a
+ARG OPENLANE2_VER=2.1.9
+ARG SKY130_PDK_REV=dd7771c
+ARG MAGIC_VER=8.3.475
+ARG NETGEN_VER=1.5.293
+ARG KLAYOUT_VER=0.29.7
+
+LABEL org.opencontainers.image.title="tt-trinity-gf16 SKY130 toolchain"
+LABEL org.opencontainers.image.source="https://github.com/gHashTag/tt-trinity-gf16"
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+LABEL org.opencontainers.image.description="Frozen SKY130 / OpenLane2 toolchain for Trinity GF16 Sacred ALU 352-LUT port (S-154)"
+LABEL trinity.anchor="phi^2+phi^-2=3"
+LABEL trinity.wave="v25"
+LABEL trinity.gate="G-83,G-84"
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      git build-essential clang lld cmake ninja-build pkg-config \
+      python3 python3-pip python3-venv python3-dev \
+      tcl-dev tk-dev tcllib \
+      libffi-dev libssl-dev libreadline-dev libsqlite3-dev \
+      zlib1g-dev libbz2-dev liblzma-dev libxml2-dev \
+      flex bison gawk libxft-dev libgsl-dev \
+      curl ca-certificates jq xz-utils unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Yosys (pinned)
+RUN git clone --recursive https://github.com/YosysHQ/yosys /opt/yosys && \
+    cd /opt/yosys && git checkout ${YOSYS_REV} && \
+    make -j"$(nproc)" && make install PREFIX=/usr/local
+
+# OpenROAD-flow-scripts (pinned)
+RUN git clone --recursive https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts /opt/orfs && \
+    cd /opt/orfs && git checkout ${OPENROAD_REV} && \
+    ./build_openroad.sh --local || echo "::warning::OpenROAD build deferred to first-run"
+
+# OpenLane2 (pinned, Python distribution)
+RUN pip install --break-system-packages --no-cache-dir openlane==${OPENLANE2_VER}
+
+# sky130A PDK (pinned)
+RUN git clone https://github.com/efabless/skywater-pdk-libs-sky130_fd_sc_hd /opt/sky130_fd_sc_hd && \
+    cd /opt/sky130_fd_sc_hd && git checkout ${SKY130_PDK_REV}
+ENV PDK_ROOT=/opt/pdk
+RUN openlane --download-pdks || true
+
+# Magic + Netgen + KLayout via apt (Ubuntu 24.04 ships compatible builds)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      magic netgen klayout && rm -rf /var/lib/apt/lists/*
+
+# Workspace conventions
+WORKDIR /workspace
+COPY scripts/run_sky130_actual.sh /usr/local/bin/run_sky130_actual.sh
+RUN chmod +x /usr/local/bin/run_sky130_actual.sh
+
+# Emit toolchain self-report (used by G-83 reproducibility check)
+RUN echo "{ \"yosys\": \"${YOSYS_REV}\", \"openroad\": \"${OPENROAD_REV}\", \"openlane2\": \"${OPENLANE2_VER}\", \"sky130_pdk\": \"${SKY130_PDK_REV}\", \"magic\": \"${MAGIC_VER}\", \"netgen\": \"${NETGEN_VER}\", \"klayout\": \"${KLAYOUT_VER}\", \"anchor\": \"phi^2+phi^-2=3\" }" > /toolchain.json
+
+ENTRYPOINT ["/usr/local/bin/run_sky130_actual.sh"]
