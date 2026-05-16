@@ -422,12 +422,30 @@ module tt_um_ghtag_trinity_gf16 (
     // Output mux: combinational dot result by default, mesh result once produced.
     wire [15:0] final_result = mesh_result_valid ? mesh_result : dot_out;
 
+    // =================================================================
+    // TRI NET friend/foe handshake (MY_ANCHOR = e = 8'hAE)
+    // uio[0]=tx_bit (OUT), uio[1]=rx_bit (IN), uio[2]=friend, uio[3]=valid
+    // =================================================================
+    wire ff_tx, ff_friend, ff_valid;
+    trinity_friend_foe #(.MY_ANCHOR(8'hAE)) u_friend_foe (
+        .clk             (clk),
+        .rst_n           (rst_n),
+        .rx_bit          (uio_in[1]),
+        .tx_bit          (ff_tx),
+        .friend_detected (ff_friend),
+        .handshake_valid (ff_valid)
+    );
+
     assign uo_out  = final_result[7:0]  | input_echo[7:0];
     // uio_out: legacy mesh result high byte by default; switches to CROWN status_byte
     // only when host asserts load_mode (ui_in[0]=1). This preserves the canonical
     // legacy test T4 which expects {uio_out, uo_out} == 0x47C0 when ui_in==0.
-    assign uio_out = (ui_in[0] && post_done) ? status_byte : (final_result[15:8] | input_echo[15:8]);
-    assign uio_oe  = 8'hFF;
+    wire [7:0] uio_legacy =
+        (ui_in[0] && post_done) ? status_byte : (final_result[15:8] | input_echo[15:8]);
+    // uio[3:0] reserved for TRI NET friend/foe; uio[7:4] keeps legacy mux.
+    assign uio_out = {uio_legacy[7:4], ff_valid, ff_friend, 1'b0, ff_tx};
+    // uio[1] is the RX bit (input); all others output.
+    assign uio_oe  = 8'b1111_1101;
 
     // Silence lint on unused. The G4 receipt outputs are exposed to the
     // testbench via the master FSM directly (not via TT pins, which are
