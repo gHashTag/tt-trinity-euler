@@ -1,4 +1,5 @@
 `default_nettype none
+`include "trinity_packet.vh"
 // tt_um_ghtag_trinity_gf16 - TinyTapeout top.
 // Apache-2.0
 //
@@ -74,17 +75,58 @@ module tt_um_ghtag_trinity_gf16 (
         .rcpt_valid_q    (mesh_rcpt_valid)
     );
 
-    trinity_mesh_2x2 u_mesh (
-        .clk             (clk),
-        .rst_n           (rst_n),
-        .host_in_pkt     (host_in_pkt),
-        .host_in_valid   (host_in_valid),
-        .host_in_ready   (host_in_ready),
-        .host_out_pkt    (host_out_pkt),
-        .host_out_valid  (host_out_valid),
-        .host_out_ready  (host_out_ready),
-        .dbg_tile0_result(mesh_dbg_tile0)
+    // P4 upgrade: replace trinity_mesh_2x2 with trinity_router_2x2 crossbar NoC.
+    // The mesh was a thin wrapper (router + 4 tiles); we inline that wrapping here
+    // so the router becomes the top-level NoC instance with proper crossbar topology.
+    wire [4*`TRN_PKT_W-1:0] t_pkt_flat;
+    wire [3:0]              t_valid;
+    wire [3:0]              t_ready;
+    wire [4*`TRN_PKT_W-1:0] t_ret_pkt_flat;
+    wire [3:0]              t_ret_valid;
+    wire [3:0]              t_ret_ready;
+
+    trinity_router_2x2 u_router (
+        .clk            (clk),
+        .rst_n          (rst_n),
+        .host_in_pkt    (host_in_pkt),
+        .host_in_valid  (host_in_valid),
+        .host_in_ready  (host_in_ready),
+        .host_out_pkt   (host_out_pkt),
+        .host_out_valid (host_out_valid),
+        .host_out_ready (host_out_ready),
+        .t_pkt_flat     (t_pkt_flat),
+        .t_valid        (t_valid),
+        .t_ready        (t_ready),
+        .t_ret_pkt_flat (t_ret_pkt_flat),
+        .t_ret_valid    (t_ret_valid),
+        .t_ret_ready    (t_ret_ready)
     );
+
+    wire [`TRN_PKT_W-1:0] t_in_pkt   [0:3];
+    wire [`TRN_PKT_W-1:0] t_out_pkt  [0:3];
+    wire [15:0]           tile_dbg   [0:3];
+
+    genvar gi;
+    generate
+        for (gi = 0; gi < 4; gi = gi + 1) begin : g_tile
+            assign t_in_pkt[gi] = t_pkt_flat[(gi+1)*`TRN_PKT_W-1 -: `TRN_PKT_W];
+            assign t_ret_pkt_flat[(gi+1)*`TRN_PKT_W-1 -: `TRN_PKT_W] = t_out_pkt[gi];
+
+            trinity_gf16_tile #(.TILE_ID(gi[1:0]), .DOT_WIDTH(8)) u_tile (
+                .clk        (clk),
+                .rst_n      (rst_n),
+                .in_pkt     (t_in_pkt[gi]),
+                .in_valid   (t_valid[gi]),
+                .in_ready   (t_ready[gi]),
+                .out_pkt    (t_out_pkt[gi]),
+                .out_valid  (t_ret_valid[gi]),
+                .out_ready  (t_ret_ready[gi]),
+                .dbg_result (tile_dbg[gi])
+            );
+        end
+    endgenerate
+
+    assign mesh_dbg_tile0 = tile_dbg[0];
 
     // ---- Wave-26b CROWN: silicon-anchored physics POST modules ----
     // L-S1: φ-anchor POST (proves φ²+φ⁻²=3 via Lucas recurrence on power-up)
