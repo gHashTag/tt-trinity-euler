@@ -1,11 +1,11 @@
 # Tiny Tapeout project information
 project:
-  title:        "TRI-1 Mid — Trinity GF16 16-cell SUPER-CROWN SoC"
+  title:        "TRI-1 Euler — Trinity e-engine 16-cell SUPER-CROWN SoC"
   author:       "Dmitrii Vasilev · Trinity Stack"
   discord:      "t27_dev"
   description:  |
-    TRI-1 Mid is the flagship middle-SKU of the TRI-1 Triad submitted to
-    TTSKY26b (siblings: tt-trinity-nano 1x1, tt-trinity-max 2x2). It packs
+    TRI-1 Euler is the e-engine SKU (Trinity TRI-NET sacred-constant triplet: phi-anchor / e-engine / gamma-surface) of the TRI-1 Triad submitted to
+    TTSKY26b (siblings: tt-trinity-phi 1x1 anchor, tt-trinity-gamma 8x4 surface). It packs
     a 4-tile GF16(2^4) ternary MAC mesh together with 15 SUPER-CROWN
     modules into an 8x2 tile footprint: phi_anchor_post + lucas_rom (proves
     phi^2 + phi^-2 = 3 on power-up via Lucas recurrence), vsa_matmul_8x8 +
