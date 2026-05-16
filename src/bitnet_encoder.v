@@ -86,7 +86,7 @@ module bitnet_encoder (
                     2'd0: begin
                         // Layer 1: compute all 32 hidden activations
                         for (k = 0; k < 32; k = k + 1) begin
-                            dot = ternary_dot(x_reg, 10'(k * 64));
+                            dot = ternary_dot(x_reg, k[4:0] << 6);
                             h1[k] <= dot;
                         end
                         stage <= 2'd1;

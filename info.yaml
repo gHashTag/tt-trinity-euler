@@ -80,6 +80,8 @@ project:
     - "wishbone_full.v"
     - "gf16_mesh_2x2_top.v"
     - "trinity_friend_foe.v"
+    - "trinity_instr_rom.v"
+    - "trinity_micro_seq.v"
 
 pinout:
   ui[0]: "load_mode"
