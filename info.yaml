@@ -1,52 +1,47 @@
 # Tiny Tapeout project information
 project:
-  title:        "TRI-1 Euler — Trinity e-engine 16-cell SUPER-CROWN SoC"
+  title:        "TRI-1 Euler — Trinity e-engine 4-tile NEUROMORPHIC SoC"
   author:       "Dmitrii Vasilev · Trinity Stack"
   discord:      "t27_dev"
   description:  |
-    TRI-1 Euler is the e-engine SKU (Trinity TRI-NET sacred-constant triplet: phi-anchor / e-engine / gamma-surface) of the TRI-1 Triad submitted to
-    TTSKY26b (siblings: tt-trinity-phi 1x1 anchor, tt-trinity-gamma 8x4 surface). It packs
-    a 4-tile GF16(2^4) ternary MAC mesh together with 15 SUPER-CROWN
-    modules into an 8x2 tile footprint: phi_anchor_post + lucas_rom (proves
-    phi^2 + phi^-2 = 3 on power-up via Lucas recurrence), vsa_matmul_8x8 +
-    vsa_matmul_16x16 (ternary VSA), bitnet_encoder (BitNet b1.58 ternary
-    MLP), bpb_counter (on-chip cross-entropy/BPB), blake3_anchor +
-    multi_tile_receipt + crc32_receipt + hwrng_lfsr (G4 DePIN signing),
-    alu9_decoder (9-instruction Trinity ternary ALU, t27 ISA preview),
-    ring27_memory (27-cell 3^3 ternary memory), phi_pll_div, wishbone_full,
-    wb_status_reg. FPGA-validated at 323 MHz on XC7A100T; silicon target
-    50 MHz @ SKY130A 60% density.
+    TRI-1 Euler is the e-engine SKU of the TRI NET sacred-constant triplet
+    (phi-anchor / e-engine / gamma-surface) submitted to TTSKY26b (siblings:
+    tt-trinity-phi 1x1, tt-trinity-gamma 8x4). Neuromorphic SKU lineage:
+    tt-trinity-holo / tt-trinity-mini -> TRI-1 Euler 2x2.
 
-    Ten chip-market differentiators (no competitor has all ten — Hailo-8,
-    MediaTek D9400 NPU890, QC Cloud AI 100 Ultra, Axelera Metis M.2,
-    Google Coral Edge TPU all miss at least two):
-      (1) native ternary {-1,0,+1} MAC silicon;
-      (2) on-chip BLAKE3 receipt signer (G4 DePIN);
-      (3) POST self-test via phi^2 + phi^-2 = 3 Lucas chain;
-      (4) 0 DSP / 0 new `*` in synthesisable RTL (R-SI-1);
-      (5) BitNet b1.58-style ternary MLP encoder on-chip;
-      (6) RING27 27-cell ternary memory (3^3);
-      (7) Trinity 9-instruction ternary ALU (t27 ISA preview);
-      (8) on-chip BPB / cross-entropy counter;
-      (9) Apache-2.0 + fully open PDK (SKY130A);
-      (10) DOI-anchored + Coq-verified provenance — t27/trios-coq carries
-           297 Qed and 141 Admitted at submission (the older "84 theorems"
-           figure is folklore predating the 2026-05-12 consolidation and is
-           explicitly retired here).
+    Core (2x2, 4 tiles):
+      - 4-PE GF16(2^4) mesh: trinity_mesh_2x2 with trinity_router_2x2
+        crossbar NoC; 4 trinity_gf16_tile PEs (gf16_dot4 compute kernel).
+      - BitNet b1.58 ternary MLP encoder: on-chip 64->32->8 neuromorphic
+        3-layer net with hardcoded {-1,0,+1} weights (PhD Ch. 35 silicon
+        JEPA-T front-end). Neuromorphic signature module.
+      - Crown47 ROM + crown47_rom_8bit: 47 Trinity constants (Crown42 +
+        5 Tegmark-31 fillers) in 24-bit pseudo-float; ~120 cells.
+      - Friend/foe handshake: trinity_friend_foe with EULER anchor 8'hAE;
+        serial inter-chip recognition on uio[3:0] (tx/rx/friend/valid).
+      - phi_anchor_post: proves phi^2+phi^-2=3 via Lucas recurrence on
+        power-up (~120 cells POST guard).
+      - phi_pll_div: phi-ratio fractional divider (~50 cells).
+      - 0x47C0 cross-die anchor: {uio_out, uo_out}==0x47C0 on reset
+        (canonical GF16 dot-product result, phi^2+phi^-2=3 marker).
 
-    Anchor: phi^2 + phi^-2 = 3 (Trinity algebraic identity).
-    DOI: 10.5281/zenodo.19227877.
-    PhD chapter: trios docs/phd/chapters/flos_70.tex (Ch. 36 TRI-1 Triad,
-    Theorem 36.1 TG-TRIAD-X — cross-die ledger determinism).
-    Provenance: trinity-fpga#19 (FPGA EPIC), trinity-fpga#49 (L-DPC7
-    TRI-1 Triad EPIC), trios assertions/igla_assertions.json (R-SI
-    compliance), tt-trinity-gf16 docs/architecture/TRI_NET_SHUTTLE_TRIAD.md
-    (canonical Triad architecture spec).
+    Differentiators:
+      (1) native GF(16) ternary MAC silicon (0 DSP);
+      (2) BitNet b1.58 ternary MLP encoder on-chip (neuromorphic SKU);
+      (3) phi^2+phi^-2=3 POST self-test via Lucas chain;
+      (4) 0 new * in synthesisable RTL (R-SI-1 clean);
+      (5) Crown47 47-constant ROM (Tegmark-31 physics coverage);
+      (6) TRI NET friend/foe inter-chip handshake (8'hAE);
+      (7) 0x47C0 cross-die anchor (deterministic ledger);
+      (8) Apache-2.0 + SKY130A open PDK;
+      (9) DOI-anchored + Coq-verified provenance.
+
+    Anchor: phi^2+phi^-2=3. DOI: 10.5281/zenodo.19227877.
     Defense: 2026-06-15.
   language:     "Verilog"
   clock_hz:     50000000
 
-  tiles: "8x2"  # bumped 2x2 -> 8x2 in PR #8 (Wave-26b SUPER-CROWN) to accommodate full Trinity SoC mini: 4 GF16 tiles + mesh + master FSM + 6 CROWN POST modules + 16x16 ternary matmul + BitNet encoder + BPB counter + BLAKE3 anchor + multi-tile RECEIPT + ALU-9 decoder + RING27 memory + phi-PLL + Wishbone-lite full. Target ~16000 gates @ 60% density on SKY130.
+  tiles: "2x2"
 
   top_module:  "tt_um_ghtag_trinity_gf16"
 
@@ -56,32 +51,16 @@ project:
     - "gf16_add.v"
     - "gf16_dot4.v"
     - "gf16_dot8.v"
-    - "gf16_dot4_sparse.v"
+    - "gf16_popcount.v"
     - "trinity_gf16_tile.v"
     - "trinity_router_2x2.v"
     - "trinity_mesh_2x2.v"
     - "trinity_master_fsm.v"
-    - "phi_anchor_post.v"
-    - "lucas_rom.v"
-    - "gf16_popcount.v"
-    - "gf16_popcount16.v"
-    - "vsa_matmul_8x8.v"
-    - "crc32_receipt.v"
-    - "hwrng_lfsr.v"
-    - "wb_status_reg.v"
-    - "vsa_matmul_16x16.v"
-    - "bitnet_encoder.v"
-    - "bpb_counter.v"
-    - "blake3_anchor.v"
-    - "multi_tile_receipt.v"
-    - "alu9_decoder.v"
-    - "ring27_memory.v"
-    - "phi_pll_div.v"
-    - "wishbone_full.v"
-    - "gf16_mesh_2x2_top.v"
     - "trinity_friend_foe.v"
-    - "trinity_instr_rom.v"
-    - "trinity_micro_seq.v"
+    - "trinity_packet.vh"
+    - "phi_anchor_post.v"
+    - "phi_pll_div.v"
+    - "bitnet_encoder.v"
     - "crown47_rom.v"
     - "crown47_rom_8bit.v"
 
@@ -92,7 +71,7 @@ pinout:
   ui[3]: "data_bit_2"
   ui[4]: "data_bit_3"
   ui[5]: "data_bit_4"
-  ui[6]: "data_bit_5"
+  ui[6]: "crown_addr_6"
   ui[7]: "data_bit_6"
 
   uo[0]: "result_bit_0"
@@ -104,13 +83,13 @@ pinout:
   uo[6]: "result_bit_6"
   uo[7]: "result_bit_7"
 
-  uio[0]: "result_high_bit_0"
-  uio[1]: "result_high_bit_1"
-  uio[2]: "result_high_bit_2"
-  uio[3]: "result_high_bit_3"
+  uio[0]: "ff_tx (friend/foe TX)"
+  uio[1]: "ff_rx (friend/foe RX, input)"
+  uio[2]: "friend_detected"
+  uio[3]: "handshake_valid"
   uio[4]: "result_high_bit_4"
   uio[5]: "result_high_bit_5"
-  uio[6]: "result_high_bit_6"
-  uio[7]: "result_high_bit_7"
+  uio[6]: "crown_byte_sel_0"
+  uio[7]: "crown_mode_en"
 
 yaml_version: 6
