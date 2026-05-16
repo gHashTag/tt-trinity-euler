@@ -82,6 +82,8 @@ project:
     - "trinity_friend_foe.v"
     - "trinity_instr_rom.v"
     - "trinity_micro_seq.v"
+    - "crown47_rom.v"
+    - "crown47_rom_8bit.v"
 
 pinout:
   ui[0]: "load_mode"
