@@ -505,9 +505,12 @@ module tt_um_ghtag_trinity_gf16 (
         (ui_in[0] && post_done)   ? status_byte :
                                      (final_result[15:8] | input_echo[15:8]);
     // uio[3:0] reserved for TRI NET friend/foe; uio[7:4] keeps legacy mux.
-    assign uio_out = {uio_legacy[7:4], ff_valid, ff_friend, 1'b0, ff_tx};
-    // uio[1] is the RX bit (input); all others output.
-    assign uio_oe  = 8'b1111_1101;
+    // Canonical mode (load_mode=0): use full uio_legacy for TG-TRIAD-X anchor 0x47C0
+    // Live mode (load_mode=1): carry TRI NET friend/foe handshake bits
+    assign uio_out = !ui_in[0] ? uio_legacy :
+                                      {uio_legacy[7:4], ff_valid, ff_friend, 1'b0, ff_tx};
+    // uio[1] is the RX bit (input) in live mode; all outputs in canonical mode
+    assign uio_oe  = !ui_in[0] ? 8'hFF : 8'b1111_1101;
 
     // Silence lint on unused. The G4 receipt outputs are exposed to the
     // testbench via the master FSM directly (not via TT pins, which are
