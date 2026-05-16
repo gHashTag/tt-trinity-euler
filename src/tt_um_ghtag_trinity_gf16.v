@@ -414,10 +414,53 @@ module tt_um_ghtag_trinity_gf16 (
         .wb_ok(wb_ok)
     );
 
-    // SUPER-CROWN aggregate health bit (all 9 new modules online)
+    // =========================================================================
+    // F1 Euler ISA: 32-deep instruction ROM + 5-bit PC micro-sequencer
+    // PhD anchor: Glava 8 (AGI Driver) + Glava 18 (Ternary ISA)
+    // Coq target: microseq_halts
+    // =========================================================================
+
+    // Wishbone-lite write bus to ROM (tied off at top level for now;
+    // future host can drive these via uio_in to load programs)
+    wire        rom_wb_cyc  = 1'b0;
+    wire        rom_wb_stb  = 1'b0;
+    wire        rom_wb_we   = 1'b0;
+    wire [4:0]  rom_wb_adr  = 5'b0;
+    wire [15:0] rom_wb_datw = 16'b0;
+    wire        rom_wb_ack;
+
+    wire [4:0]  seq_pc;
+    wire [15:0] seq_instr;
+    wire        seq_halted;
+    wire [7:0]  seq_acc;
+
+    trinity_instr_rom u_instr_rom (
+        .clk      (clk),
+        .rst_n    (rst_n),
+        .pc       (seq_pc),
+        .instr    (seq_instr),
+        .wb_cyc   (rom_wb_cyc),
+        .wb_stb   (rom_wb_stb),
+        .wb_we    (rom_wb_we),
+        .wb_adr   (rom_wb_adr),
+        .wb_dat_w (rom_wb_datw),
+        .wb_ack   (rom_wb_ack)
+    );
+
+    trinity_micro_seq u_micro_seq (
+        .clk     (clk),
+        .rst_n   (rst_n),
+        .ena     (ena),
+        .pc      (seq_pc),
+        .instr   (seq_instr),
+        .halted  (seq_halted),
+        .acc_out (seq_acc)
+    );
+
+    // SUPER-CROWN aggregate health bit (all 9 original + micro-seq halted flag)
     wire super_crown_ok =
         mm16_ok & enc_ok & bpb_ok & hash_ok & multi_rcpt_ok &
-        alu_ok  & ring_ok & phi_div_ok & wb_ok;
+        alu_ok  & ring_ok & phi_div_ok & wb_ok & seq_halted;
 
     // Output mux: combinational dot result by default, mesh result once produced.
     wire [15:0] final_result = mesh_result_valid ? mesh_result : dot_out;
@@ -466,6 +509,7 @@ module tt_um_ghtag_trinity_gf16 (
                      ring_rd, phi_tick, phi_state,
                      wb_dat_r, wb_ack,
                      super_crown_ok,
+                     rom_wb_ack, seq_acc, seq_instr,
                      ui_in[7:4], 1'b0};
 
 endmodule
