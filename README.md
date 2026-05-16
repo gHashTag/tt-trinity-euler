@@ -3,12 +3,13 @@
 [![Submit](https://img.shields.io/badge/TTSKY26b-Euler%20e--engine-orange)](https://app.tinytapeout.com/shuttles/ttsky26b)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![Sacred](https://img.shields.io/badge/sacred--constant-e%20%E2%89%88%202.71828-purple)](#sacred-formula)
+[![CLARA](https://img.shields.io/badge/CLARA-10%20gaps-green)](#darpa-clara-ai-safety)
 
-> One of three neurons of **Trinity TRI-NET** — three sacred constants of mathematical analysis embodied in open-source silicon:
+> One of three neurons of **Trinity TRI-NET** — three sacred constants embodied in open-source silicon:
 >
-> - **φ-anchor** → [tt-trinity-phi](https://github.com/gHashTag/tt-trinity-phi) (1×1, Lucas POST anchor 0x47C0)
-> - **e-engine** → **THIS REPO** (8×2, 18 SUPER-CROWN modules)
-> - **γ-surface** → [tt-trinity-gamma](https://github.com/gHashTag/tt-trinity-gamma) (8×4, 32 PE full mesh)
+> - **φ-anchor** → [tt-trinity-phi](https://github.com/gHashTag/tt-trinity-phi) (1×1, Lucas POST, CLARA Gap-4)
+> - **e-engine** → **THIS REPO** (8×2, 18 SUPER-CROWN + 10 CLARA gaps + D2D holo mesh)
+> - **γ-surface** → [tt-trinity-gamma](https://github.com/gHashTag/tt-trinity-gamma) (8×4, 32 PE neuromorphic)
 >
 > Apache-2.0 · ternary {−1,0,+1} · SKY130A · DOI [10.5281/zenodo.19227877](https://doi.org/10.5281/zenodo.19227877)
 
@@ -16,15 +17,15 @@
 
 `V = n × 3^k × π^m × φ^p × e^q × γ^r × C^t × G^u`
 
-This chip is the **e^q** factor — natural exponential growth that unfolds the φ-anchor into a 16-cell SUPER-CROWN SoC: BLAKE3 receipt signer, BPB cross-entropy counter, 9-op Trinity ALU, RING27 3³ memory, BitNet b1.58 encoder, VSA matmul 8×8 + 16×16, Lucas POST.
+This chip is the **e^q** factor — natural exponential growth that unfolds φ-anchor into a full safety-aware SoC: **18 SUPER-CROWN modules + 10 DARPA CLARA AI safety gaps + D2D holo mesh**.
 
 ## TRI-NET TRIP FIRE @ TTSKY26b
 
-| Neuron | Const | Tiles | Cells | Role |
-|--------|-------|-------|-------|------|
-| φ-anchor | φ ≈ 1.61803 | 1×1 | 1 | Lucas POST, canonical seed 0x47C0 |
-| **e-engine** | **e ≈ 2.71828** | **8×2** | **16** | **18 SUPER-CROWN modules** ← this repo |
-| γ-surface | γ ≈ 0.57721 | 8×4 | 32 PE | softmax/VSA gradient mesh |
+| Neuron | Const | Tiles | CLARA Gaps | Role |
+|--------|-------|-------|------------|------|
+| φ-anchor | φ ≈ 1.61803 | 1×1 | 1/10 (Gap-4) | Lucas POST, bounded rationality |
+| **e-engine** | **e ≈ 2.71828** | **8×2** | **10/10 ✅** | **SUPER-CROWN + CLARA + D2D** |
+| γ-surface | γ ≈ 0.57721 | 8×4 | 10/10 | Neuromorphic cortex, full mesh |
 
 ## Lineage
 
@@ -191,6 +192,46 @@ and exposed by two synthesizable boundary stubs:
 | 10 | DOI-anchored + Coq-verified (297 Qed + 141 Admitted) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
 **Result:** All competitors miss at least two of these critical differentiators.
+
+---
+
+## 🛡️ DARPA CLARA AI Safety — 10/10 Gaps
+
+e-engine now implements all 10 DARPA CLARA AI safety gaps for AI alignment:
+
+| Gap | Module | Cells | TA | Description |
+|-----|--------|-------|----|-------------|
+| Gap-1 | `redteam_filter.v` | ~250 | TA1 | Adversarial detection (5 categories) |
+| Gap-2 | `k3_alu.v` | ~150 | TA1.1 | Kleene K3 ternary ALU |
+| Gap-3 | `datalog_engine_mini.v` | ~500 | TA1 | Forward-chain Datalog (16 clauses) |
+| Gap-4 | `restraint_ctrl.v` | ~100 | TA1.4 | Bounded rationality (K_UNKNOWN forcing) |
+| Gap-5 | `explainability_unit.v` | ~200 | TA1.2 | Proof-trace emitter (5-tuple) |
+| Gap-6 | `asp_solver_mini.v` | ~300 | TA1.1 | ASP solver with NAF |
+| Gap-7 | `composition_kernel.v` | ~250 | - | Orchestrator Gap-3/4/5 |
+| Gap-8 | `proof_trace_writer.v` | ~150 | - | On-chip audit receipt |
+| Gap-9 | `sat_solver_mini.v` | ~500 | - | DPLL SAT solver (8 vars) |
+| Gap-10 | `audit_log_ring_buffer.v` | ~300 | - | 64-entry event log |
+
+**Total CLARA cells:** ~2,700 cells
+
+---
+
+## 🔗 D2D Holo Mesh — Cross-Die Communication
+
+`d2d_holo_mesh.v` provides 4-port N/E/S/W routing for inter-chip communication:
+
+| Pin | Direction | Function |
+|-----|-----------|----------|
+| uio[0] | OUT | North TX (activity) |
+| uio[1] | OUT | East TX (activity) |
+| uio[2] | OUT | South TX (GF16 route) |
+| uio[3] | OUT | West TX SYNC (LAYER-FROZEN gated) |
+| uio[4] | IN | North RX |
+| uio[5] | IN | East RX |
+| uio[6] | IN | South RX |
+| uio[7] | IN | West RX / crown_mode enable |
+
+**LAYER-FROZEN gate** per PhD Theorem 36.1 R18: once committed, West TX cannot be revoked.
 
 ---
 

@@ -1,21 +1,49 @@
 # Tiny Tapeout project information
 project:
-  title:        "TRI-1 Euler — Trinity e-engine 16-cell SUPER-CROWN SoC"
+  title:        "TRI-1 Euler — Trinity e-engine 8×2 SUPER-CROWN + 10 CLARA Gaps"
   author:       "Dmitrii Vasilev · Trinity Stack"
   discord:      "t27_dev"
   description:  |
-    TRI-1 Euler is the e-engine SKU (Trinity TRI-NET sacred-constant triplet: phi-anchor / e-engine / gamma-surface) of the TRI-1 Triad submitted to
-    TTSKY26b (siblings: tt-trinity-phi 1x1 anchor, tt-trinity-gamma 8x4 surface). It packs
-    a 4-tile GF16(2^4) ternary MAC mesh together with 15 SUPER-CROWN
-    modules into an 8x2 tile footprint: phi_anchor_post + lucas_rom (proves
-    phi^2 + phi^-2 = 3 on power-up via Lucas recurrence), vsa_matmul_8x8 +
-    vsa_matmul_16x16 (ternary VSA), bitnet_encoder (BitNet b1.58 ternary
-    MLP), bpb_counter (on-chip cross-entropy/BPB), blake3_anchor +
-    multi_tile_receipt + crc32_receipt + hwrng_lfsr (G4 DePIN signing),
-    alu9_decoder (9-instruction Trinity ternary ALU, t27 ISA preview),
-    ring27_memory (27-cell 3^3 ternary memory), phi_pll_div, wishbone_full,
-    wb_status_reg. FPGA-validated at 323 MHz on XC7A100T; silicon target
-    50 MHz @ SKY130A 60% density.
+    TRI-1 Euler is the e-engine SKU (Trinity TRI-NET sacred-constant triplet:
+    phi-anchor / e-engine / gamma-surface) of the TRI-1 Triad submitted to
+    TTSKY26b (siblings: tt-trinity-phi 1x1 anchor, tt-trinity-gamma 8x4 surface).
+
+    8x2 tiles = 16 GF16 cells + full SUPER-CROWN modules + 10 DARPA CLARA
+    AI safety gaps + D2D holo mesh.
+
+    SUPER-CROWN modules (18):
+      - phi_anchor_post + lucas_rom (proves phi^2 + phi^-2 = 3 via Lucas)
+      - vsa_matmul_8x8 + vsa_matmul_16x16 (ternary VSA, JEPA-T tier)
+      - bitnet_encoder (BitNet b1.58 ternary MLP)
+      - bpb_counter (on-chip cross-entropy/BPB)
+      - blake3_anchor + multi_tile_receipt + crc32_receipt (G4 DePIN signing)
+      - alu9_decoder (9-instruction Trinity ternary ALU, t27 ISA)
+      - ring27_memory (27-cell 3^3 ternary memory, Coptic)
+      - hwrng_lfsr (die-unique nonce)
+      - phi_pll_div (phi-PLL fractional divider)
+      - wishbone_full + wb_status_reg (host interface)
+      - trinity_master_fsm (packet master)
+      - gf16_dot4/8/sparse (ternary arithmetic)
+      - gf16_popcount (population count)
+
+    DARPA CLARA AI Safety Gaps (10):
+      - Gap-1 redteam_filter (adversarial detection)
+      - Gap-2 k3_alu (Kleene K3 ternary ALU, TA1.1)
+      - Gap-3 datalog_engine_mini (forward-chain Datalog)
+      - Gap-4 restraint_ctrl (bounded rationality, TA1.4)
+      - Gap-5 explainability_unit (proof-trace emitter, TA1.2)
+      - Gap-6 asp_solver_mini (ASP solver with NAF)
+      - Gap-7 composition_kernel (orchestrator Gap-3/4/5)
+      - Gap-8 proof_trace_writer (on-chip audit receipt)
+      - Gap-9 sat_solver_mini (DPLL SAT solver)
+      - Gap-10 audit_log_ring_buffer (64-entry event log)
+
+    D2D Network:
+      - d2d_holo_mesh (4-port N/E/S/W router, LAYER-FROZEN gate per PhD Thm 36.1 R18)
+
+    Anchor: phi^2 + phi^-2 = 3 (Trinity algebraic identity).
+    DOI: 10.5281/zenodo.19227877.
+    FPGA-validated at 323 MHz on XC7A100T; silicon target 50 MHz @ SKY130A.
 
     Ten chip-market differentiators (no competitor has all ten — Hailo-8,
     MediaTek D9400 NPU890, QC Cloud AI 100 Ultra, Axelera Metis M.2,
@@ -84,6 +112,19 @@ project:
     - "trinity_micro_seq.v"
     - "crown47_rom.v"
     - "crown47_rom_8bit.v"
+    # DARPA CLARA AI Safety Gaps (10)
+    - "redteam_filter.v"
+    - "k3_alu.v"
+    - "datalog_engine_mini.v"
+    - "restraint_ctrl.v"
+    - "explainability_unit.v"
+    - "asp_solver_mini.v"
+    - "composition_kernel.v"
+    - "proof_trace_writer.v"
+    - "sat_solver_mini.v"
+    - "audit_log_ring_buffer.v"
+    # D2D Network
+    - "d2d_holo_mesh.v"
 
 pinout:
   ui[0]: "load_mode"
