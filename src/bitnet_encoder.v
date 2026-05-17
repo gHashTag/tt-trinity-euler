@@ -52,7 +52,11 @@ module bitnet_encoder (
         begin
             acc = 0;
             for (i = 0; i < 64; i = i + 1) begin
-                xe = x[2*i +: 2];
+                // xe = {x[2*i+1], x[2*i]}; // 2*i always even since i increments by 1
+                case (i[0])
+                    1'b0: xe = {x[2*i+1], x[2*i]};
+                    1'b1: xe = {x[2*i+1], x[2*i]};
+                endcase
                 we = w_gen(neuron_base + i[5:0]);
                 if (!xe[1] && !we[1]) begin
                     if (xe[0] == we[0]) acc = acc + 16'sd1;
@@ -101,7 +105,17 @@ module bitnet_encoder (
                                 else if (|h1[k]) dot = dot + 16'sd1;
                             end
                             y_acc[j] <= dot;
-                            y_out[8*j +: 8] <= dot[7:0];
+                            // y_out[8*j +: 8] <= dot[7:0];
+                            case (j)
+                                3'd0: y_out[7:0]   <= dot[7:0];
+                                3'd1: y_out[15:8]  <= dot[7:0];
+                                3'd2: y_out[23:16] <= dot[7:0];
+                                3'd3: y_out[31:24] <= dot[7:0];
+                                3'd4: y_out[39:32] <= dot[7:0];
+                                3'd5: y_out[47:40] <= dot[7:0];
+                                3'd6: y_out[55:48] <= dot[7:0];
+                                3'd7: y_out[63:56] <= dot[7:0];
+                            endcase
                         end
                         stage <= 2'd2;
                     end
