@@ -54,15 +54,13 @@ module nf4_quantizer (
             default: scale = 16'h4000;
         endcase
 
-        // Scale the input. The scale LUT above only emits powers of two,
-        // so (fp16_in * scale) >>> 15 reduces to an arithmetic right shift
-        // by (15 - log2(scale)) = (scale_idx + 1). R-SI-1: no `*`.
+        // Scale the input (R-SI-1: shift instead of *)
         case (scale_idx)
-            4'd0:    scaled = fp16_in >>> 1;  // *0x4000 >>>15
-            4'd1:    scaled = fp16_in >>> 2;  // *0x2000 >>>15
-            4'd2:    scaled = fp16_in >>> 3;  // *0x1000 >>>15
-            4'd3:    scaled = fp16_in >>> 4;  // *0x0800 >>>15
-            default: scaled = fp16_in >>> 1;
+            4'd0: scaled = {{1{fp16_in[15]}}, fp16_in[15:1]};   // >> 1 (0.5)
+            4'd1: scaled = {{2{fp16_in[15]}}, fp16_in[15:2]};   // >> 2 (0.25)
+            4'd2: scaled = {{3{fp16_in[15]}}, fp16_in[15:3]};   // >> 3 (0.125)
+            4'd3: scaled = {{4{fp16_in[15]}}, fp16_in[15:4]};   // >> 4 (0.0625)
+            default: scaled = {{1{fp16_in[15]}}, fp16_in[15:1]};
         endcase
 
         // Quantize to NF4 range [-8, 7] then map to levels
