@@ -1,4 +1,9 @@
-# Tiny Tapeout project information
+# Tiny Tapeout project information — TRI-1 Euler Engine
+# https://tinytapeout.com/specs/info_yaml/
+#
+# R-SI-1 verified: zero `*` operators in synthesisable RTL.
+yaml_version: 6
+
 project:
   title:        "TRI-1 Euler — Trinity e-engine 8×2 SUPER-CROWN + 10 CLARA Gaps"
   author:       "Dmitrii Vasilev · Trinity Stack"
@@ -153,5 +158,3 @@ pinout:
   uio[5]: "result_high_bit_5"
   uio[6]: "result_high_bit_6"
   uio[7]: "result_high_bit_7"
-
-yaml_version: 6
