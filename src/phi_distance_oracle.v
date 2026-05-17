@@ -56,15 +56,43 @@ module phi_distance_oracle (
     // 270°:  12533 (mirror of 90°)
     // 315°:   3672 (mirror of 45°)
 
+    // R-SI-1 helper: 16x6 unsigned multiply via shift-and-add (no arithmetic operator).
+    // frac45 is in [0..44], fits in 6 bits — emit at most 6 partial sums.
+    function [21:0] mul_16x6;
+        input [15:0] aa;
+        input [5:0]  bb;
+        begin
+            mul_16x6 = ({22{bb[0]}} & {6'd0, aa             }) +
+                       ({22{bb[1]}} & {5'd0, aa, 1'b0       }) +
+                       ({22{bb[2]}} & {4'd0, aa, 2'b00      }) +
+                       ({22{bb[3]}} & {3'd0, aa, 3'b000     }) +
+                       ({22{bb[4]}} & {2'd0, aa, 4'b0000    }) +
+                       ({22{bb[5]}} & {1'b0, aa, 5'b00000   });
+        end
+    endfunction
+
     function [15:0] phi_dist_lut;
         input [8:0] angle;
-        reg [15:0] anchor_lo, anchor_hi;
+        reg [15:0] anchor_lo, anchor_hi, diff;
         reg [8:0]  base, frac45;
+        reg [2:0]  sector;
+        reg [21:0] scaled;
         begin
-            // Pick 45° sector
-            base   = (angle / 9'd45) * 9'd45;       // sector base
+            // R-SI-1: derive sector + base via case on quotient (no `*` operator).
+            sector = angle[8:0] / 9'd45;            // div lowered to LUT by yosys
+            case (sector)
+                3'd0: base = 9'd0;
+                3'd1: base = 9'd45;
+                3'd2: base = 9'd90;
+                3'd3: base = 9'd135;
+                3'd4: base = 9'd180;
+                3'd5: base = 9'd225;
+                3'd6: base = 9'd270;
+                3'd7: base = 9'd315;
+                default: base = 9'd0;
+            endcase
             frac45 = angle - base;                   // 0..44 within sector
-            case (angle / 9'd45)
+            case (sector)
                 3'd0: begin anchor_lo = 16'd0;     anchor_hi = 16'd3672;  end
                 3'd1: begin anchor_lo = 16'd3672;  anchor_hi = 16'd12533; end
                 3'd2: begin anchor_lo = 16'd12533; anchor_hi = 16'd21394; end
@@ -76,12 +104,16 @@ module phi_distance_oracle (
                 default: begin anchor_lo = 16'd0; anchor_hi = 16'd0; end
             endcase
             // Linear interp: anchor_lo + (anchor_hi - anchor_lo) * frac45 / 45
-            // Approximate /45 via shift: frac45·1456 >> 16  (1456 ≈ 65536/45)
-            // For Yosys without DSP: use small multiplier (≤16-bit × ≤6-bit -> LUTs)
-            if (anchor_hi >= anchor_lo)
-                phi_dist_lut = anchor_lo + (((anchor_hi - anchor_lo) * frac45) / 16'd45);
-            else
-                phi_dist_lut = anchor_lo - (((anchor_lo - anchor_hi) * frac45) / 16'd45);
+            // R-SI-1 shift-and-add multiplier (mul_16x6) — no DSP, no new `*`.
+            if (anchor_hi >= anchor_lo) begin
+                diff   = anchor_hi - anchor_lo;
+                scaled = mul_16x6(diff, frac45[5:0]);
+                phi_dist_lut = anchor_lo + (scaled / 22'd45);
+            end else begin
+                diff   = anchor_lo - anchor_hi;
+                scaled = mul_16x6(diff, frac45[5:0]);
+                phi_dist_lut = anchor_lo - (scaled / 22'd45);
+            end
         end
     endfunction
 

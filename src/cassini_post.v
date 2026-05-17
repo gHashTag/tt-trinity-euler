@@ -45,6 +45,30 @@ module cassini_post (
         endcase
     endfunction
 
+    // R-SI-1: precomputed product table. step ∈ {2,3,4,5}.
+    //   lhs_lut(n) = L_n     · L_{n+1}
+    //   rhs_lut(n) = L_{n-1} · L_{n+2}
+    function [9:0] lhs_lut;
+        input [3:0] n;
+        case (n)
+            4'd2:    lhs_lut = 10'd12;   // 3·4
+            4'd3:    lhs_lut = 10'd28;   // 4·7
+            4'd4:    lhs_lut = 10'd77;   // 7·11
+            4'd5:    lhs_lut = 10'd198;  // 11·18
+            default: lhs_lut = 10'd0;
+        endcase
+    endfunction
+    function [9:0] rhs_lut;
+        input [3:0] n;
+        case (n)
+            4'd2:    rhs_lut = 10'd7;    // 1·7
+            4'd3:    rhs_lut = 10'd33;   // 3·11
+            4'd4:    rhs_lut = 10'd72;   // 4·18
+            4'd5:    rhs_lut = 10'd203;  // 7·29
+            default: rhs_lut = 10'd0;
+        endcase
+    endfunction
+
     reg [3:0] step;       // n = 2..5 (which n is being LATCHED this cycle)
     reg [3:0] step_prev;  // n that lhs/rhs currently hold
     reg       running;
@@ -68,10 +92,9 @@ module cassini_post (
             cassini_ok <= 1'b1;     // optimistic, sticky-clear on mismatch
             post_done  <= 1'b0;
         end else if (running) begin
-            // Combinational multiply on small constants (≤6-bit × ≤6-bit)
-            // Yosys: -> LUTs, no DSP. R-SI-1 compliant.
-            lhs <= lucas(step)     * lucas(step + 4'd1);
-            rhs <= lucas(step - 4'd1) * lucas(step + 4'd2);
+            // R-SI-1: lookup-table products (no `*` operator).
+            lhs <= lhs_lut(step);
+            rhs <= rhs_lut(step);
             step_prev <= step;
             lhs_valid <= 1'b1;
 

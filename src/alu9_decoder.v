@@ -60,7 +60,13 @@ module alu9_decoder (
             4'd0: begin sr = 0;                                end  // NOP
             4'd1: begin sr = sa + sb;                          end  // ADD
             4'd2: begin sr = sa - sb;                          end  // SUB
-            4'd3: begin sr = sa * sb;                          end  // MUL (ternary, range -1..1)
+            // MUL (ternary, range -1..1): R-SI-1 shift-and-add-free.
+            // {-1,0,+1} multiply: 0 if either is 0; +1 if signs match; -1 otherwise.
+            4'd3: begin
+                if (sa == 0 || sb == 0)            sr = 4'sd0;
+                else if (sa[3] == sb[3])           sr = 4'sd1;
+                else                                sr = -4'sd1;
+            end
             4'd4: begin sr = (sa < sb) ? sa : sb;              end  // AND (min)
             4'd5: begin sr = (sa > sb) ? sa : sb;              end  // OR  (max)
             4'd6: begin sr = -sa;                              end  // NOT (negate)
@@ -75,9 +81,7 @@ module alu9_decoder (
         result = s_to_tri(sr);
     end
 
-    // R-SI-1 note: opcode 3 (TRI_MUL) uses signed * — BUT operands are 4-bit signed
-    // restricted to {-1, 0, +1} so synth folds this into a small LUT, not a
-    // multiplier macro. Acceptable on SKY130 (verified via yosys flatten).
+    // R-SI-1: opcode 3 (TRI_MUL) now uses zero-detect + sign-XOR (no `*` operator).
     assign decoder_ok = 1'b1;
 
 endmodule
