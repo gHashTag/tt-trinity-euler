@@ -11,8 +11,65 @@
 > - **φ-anchor** → [tt-trinity-phi](https://github.com/gHashTag/tt-trinity-phi) (1×1, Lucas POST, CLARA Gap-4)
 > - **e-engine** → **THIS REPO** (8×2, 18 SUPER-CROWN modules + 10 CLARA gaps + D2D holo mesh)
 > - **γ-surface** → [tt-trinity-gamma](https://github.com/gHashTag/tt-trinity-gamma) (8×4, 32 PE neuromorphic)
+> - **t27 toolchain** → [t27](https://github.com/gHashTag/t27) (`.t27` spec → RTL generator + numeric format registry)
 >
 > Apache-2.0 · ternary {−1,0,+1} · SKY130A · DOI [10.5281/zenodo.19227877](https://doi.org/10.5281/zenodo.19227877)
+
+---
+
+## What this repo is
+
+**tt-trinity-euler** is the **balanced / DARPA-CLARA-facing SKU** of the
+TRI-NET line — an open high-assurance ternary AI silicon substrate. It is
+the 8×2 *e-engine* chip carrying 18 SUPER-CROWN modules, 10 CLARA-style
+AI-safety gaps, a 4-port D2D holo mesh, and an on-chip BLAKE3 audit
+receipt path. The differentiation thesis is **open RTL + open PDK +
+native ternary + on-chip audit/proof-trace**, not a raw TOPS race —
+see [COMPETITORS.md](COMPETITORS.md).
+
+## What runs today
+
+- ✅ **RTL** — 51 synthesisable Verilog-2005 modules under [`src/`](src/); R-SI-1 (zero new `*` operators) enforced by [`.github/workflows/no_star.yaml`](.github/workflows/no_star.yaml).
+- ✅ **Simulation** — Icarus testbench passes locally: `TOTAL PASS=17 FAIL=0 ALL PASS` (canonical GF16 anchor `0x47C0` + 16 dot8 vectors). Reproduce with the snippet under [Quick Start](#quick-start) or [BENCHMARKS.md §5](BENCHMARKS.md).
+- ✅ **CI** — `test.yaml` (canonical anchor) · `no_star.yaml` (R-SI-1) · `gds.yaml` (OpenLane2 SKY130A) · `fpga.yaml` · `tri-test.yml`.
+- ✅ **Shuttle** — submitted to Tiny Tapeout TTSKY26b on 2026-05-17 (8×2 tiles). See [`CHANGELOG.md`](CHANGELOG.md).
+- ⚠ **Silicon** — not yet returned from the foundry. **Any TOPS / TOPS-per-watt / power figure on this page is `PROJECTED`, not `MEASURED`**. The line you can quote: see [BENCHMARKS.md](BENCHMARKS.md).
+
+## How to verify
+
+```bash
+sudo apt-get install -y iverilog            # Ubuntu 24.04
+iverilog -I src -o /tmp/sim_dot8 \
+    src/gf16_mul.v src/gf16_add.v src/gf16_dot4.v src/gf16_dot8.v \
+    sim/tb_gf16_dot8.v
+vvp /tmp/sim_dot8
+# expected tail: "TOTAL PASS=17  FAIL=0  ALL PASS"
+```
+
+## Why this is different
+
+Open RTL (Apache-2.0). Open PDK (SKY130A). **Native ternary
+{−1, 0, +1}** numeric path in synthesisable RTL ([`src/bitnet_encoder.v`](src/bitnet_encoder.v),
+[`src/vsa_matmul_8x8.v`](src/vsa_matmul_8x8.v)). On-chip **BLAKE3
+receipt signer** + 64-entry audit ring buffer
+([`src/blake3_anchor.v`](src/blake3_anchor.v),
+[`src/audit_log_ring_buffer.v`](src/audit_log_ring_buffer.v)).
+**10 CLARA-style safety gaps** mapped one-to-one to RTL — see
+[CLARA_TRACEABILITY.md](CLARA_TRACEABILITY.md). The 4 commercial NPUs the
+chip-market usually compares against — Qualcomm Cloud AI 100 Ultra,
+Hailo-8, Axelera Metis, Google Coral Edge TPU, MediaTek Dimensity NPU —
+are closed silicon and do not ship a native ternary path; see
+[COMPETITORS.md](COMPETITORS.md) for the restrained per-vendor read.
+
+## Project map
+
+| Document | What it covers |
+|---|---|
+| [STATUS.md](STATUS.md) | Readiness ladder (SPEC / RTL / SIM / SYNTH / GDS / SILICON), evidence table, immediate checklist |
+| [LINEUP.md](LINEUP.md) | The four repos of the TRI-NET line and where Euler sits |
+| [CLARA_TRACEABILITY.md](CLARA_TRACEABILITY.md) | 10 CLARA gaps → RTL → tests → external proofs |
+| [COMPETITORS.md](COMPETITORS.md) | Restrained, evidence-backed read of the commercial NPU field |
+| [BENCHMARKS.md](BENCHMARKS.md) | What's `MEASURED` / `SIMULATED` / `SYNTHESIS-REPORTED` / `PROJECTED`, and what's not measured yet |
 
 ---
 
