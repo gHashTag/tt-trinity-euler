@@ -420,3 +420,15 @@ The canonical test `0x47C0` must PASS. Failure indicates:
 **License:** Apache-2.0 (see [LICENSE](LICENSE))
 
 **Anchor:** φ² + φ⁻² = 3 · DOI [10.5281/zenodo.19227877](https://doi.org/10.5281/zenodo.19227877)
+
+---
+
+## 🔗 TRI-NET Cross-References
+
+| Component | Repository | Tiles | CLARA Gaps |
+|-----------|------------|-------|------------|
+| **φ-anchor** | [tt-trinity-phi](https://github.com/gHashTag/tt-trinity-phi) | 1×1 | 1/10 |
+| **e-engine** | [tt-trinity-euler](https://github.com/gHashTag/tt-trinity-euler) (this repo) | 8×2 | 10/10 |
+| **γ-surface** | [tt-trinity-gamma](https://github.com/gHashTag/tt-trinity-gamma) | 8×4 | 10/10 |
+
+All three dies emit the same canonical `0x47C0` on power-up (TG-TRIAD-X cross-die anchor).
