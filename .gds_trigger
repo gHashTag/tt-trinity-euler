@@ -1,0 +1,5 @@
+# GDS rebuild trigger
+# Last triggered: 2026-05-17T15:35 UTC+7
+# Commit: 73d692b — no tt_submission artifact, need fresh GDS run
+# This file forces a new GDS workflow run to produce tt_submission artifact
+# required by Tiny Tapeout shuttle submission.
