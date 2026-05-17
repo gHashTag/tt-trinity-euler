@@ -21,7 +21,9 @@ jobs:
 
       - name: Run synthesis
         run: |
-          yosys -p "read_verilog -I src src/*.v; \
+          # Exclude tb_*.v testbench files (use real, $display — not synthesisable)
+          SRCS=$(ls src/*.v | grep -v '/tb_' | tr '\n' ' ')
+          yosys -p "read_verilog -I src $SRCS; \
                     hierarchy -top tt_um_ghtag_trinity_gf16; \
                     proc; opt; \
                     synth -top tt_um_ghtag_trinity_gf16; \
@@ -39,6 +41,7 @@ jobs:
 
       - name: Run Verilator lint
         run: |
+          # tb_*.v are simulation-only testbenches; exclude from lint search.
           verilator --lint-only -Wall -Wno-fatal \
             -Isrc \
             -y src \
@@ -56,7 +59,9 @@ jobs:
 
       - name: Generate resource report
         run: |
-          yosys -p "read_verilog -I src src/*.v; \
+          # Exclude tb_*.v testbench files (use real, $display — not synthesisable)
+          SRCS=$(ls src/*.v | grep -v '/tb_' | tr '\n' ' ')
+          yosys -p "read_verilog -I src $SRCS; \
                     hierarchy -top tt_um_ghtag_trinity_gf16; \
                     proc; opt; \
                     synth -top tt_um_ghtag_trinity_gf16; \
