@@ -10,8 +10,8 @@ module gf256_add (
     output reg  [255:0] result
 );
 
-    localparam BIAS    = 97'd79228162514264337593543950335;
-    localparam EXP_MAX = 97'd158456325028528675187087900672;
+    localparam BIAS    = 97'd79228162514264337593543950335;  // = 2^96 - 1, fits in 96 bits
+    localparam EXP_MAX = 98'd158456325028528675187087900672; // = 2 * BIAS + 2, needs 98 bits
 
     wire        sign_a = a[255];
     wire [96:0] exp_a  = a[254:158];

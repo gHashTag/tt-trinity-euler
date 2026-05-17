@@ -76,7 +76,7 @@ localparam GF128_BIAS = 140737488355327;
 localparam GF256_BITS  = 256;
 localparam GF256_EXP   = 97;
 localparam GF256_MANT  = 158;
-localparam GF256_BIAS = 32'd7922816251426433759; // 7.9e37
+localparam GF256_BIAS = 64'd7922816251426433759; // 7.9e18 (fits in 63 bits)
 
 // ============================================================
 // Format Category Identifiers
@@ -110,7 +110,7 @@ localparam GF_ID_BF16   = 4'd12;
 localparam GF_ID_FP8_E4 = 4'd13;
 localparam GF_ID_FP8_E5 = 4'd14;
 localparam GF_ID_INT4   = 4'd15;
-localparam GF_ID_INT8   = 4'd16;
+localparam GF_ID_INT8   = 5'd16; // value 16 needs 5 bits
 localparam [4:0] GF_ID_NF4    = 5'd17;
 localparam [4:0] GF_ID_POSIT16 = 5'd18;
 localparam [4:0] GF_ID_BINARY16 = 5'd19;
