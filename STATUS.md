@@ -22,7 +22,7 @@ not.
 | Level | Meaning | tt-trinity-euler status | Evidence |
 |------:|---------|-------------------------|----------|
 | **SPEC**     | Architecture, ISA, pinout, protocols frozen in markdown / YAML | **DONE** | [`info.yaml`](info.yaml), [`docs/EULER_ISA_V2.md`](docs/EULER_ISA_V2.md), [`docs/PINOUT.md`](docs/PINOUT.md), [`docs/INTERCONNECT_PROTOCOL_V1.md`](docs/INTERCONNECT_PROTOCOL_V1.md), [`docs/architecture/TRI_NET_SHUTTLE_TRIAD.md`](docs/architecture/TRI_NET_SHUTTLE_TRIAD.md) |
-| **RTL**      | Synthesisable Verilog-2005 in `src/`, R-SI-1 compliant | **DONE** | 51 `.v` files under [`src/`](src/), R-SI-1 enforced by [`.github/workflows/no_star.yaml`](.github/workflows/no_star.yaml) |
+| **RTL**      | Synthesisable Verilog-2005 in `src/`, R-SI-1 compliant | **DONE** | 86 `.v` files under [`src/`](src/) (51 core e-engine modules + 35 v1.0.0 quantiser / power / format files merged in from main), R-SI-1 enforced by [`.github/workflows/no_star.yaml`](.github/workflows/no_star.yaml) |
 | **SIM**      | Functional simulation passes locally and in CI | **DONE (core path)** | `iverilog` GF16 dot4/dot8 testbench → `TOTAL PASS=17 FAIL=0` (see §3); [`.github/workflows/test.yaml`](.github/workflows/test.yaml) canonical 0x47C0 check |
 | **SYNTH**    | OpenLane2 logic synthesis on SKY130A clean (no errors) | **PARTIAL — pipeline configured, last successful run claimed in CHANGELOG; not re-verified locally in this branch** | [`.github/workflows/gds.yaml`](.github/workflows/gds.yaml) (uses `TinyTapeout/tt-gds-action@ttsky26b`); [`CHANGELOG.md`](CHANGELOG.md) "Verified — All 5 CI workflows green" |
 | **GDS/TAPEOUT** | Submitted to a shuttle; signed-off GDSII produced | **SUBMITTED (TTSKY26b)** — not yet returned silicon | [`CHANGELOG.md`](CHANGELOG.md) §`[TTSKY26b-submit] 2026-05-17`; [`.gds_trigger`](.gds_trigger) |
@@ -72,7 +72,7 @@ not in this table, it is **not** part of the supported status.
 | Claim | Evidence | Status |
 |---|---|---|
 | 8×2 tile allocation on SKY130A | [`info.yaml`](info.yaml) `tiles: "8x2"` | SPEC |
-| 51 RTL modules under `src/` | `ls src/*.v \| wc -l` = 51 | RTL |
+| 86 RTL modules under `src/` (51 core e-engine + 35 v1.0.0 add-ons) | `ls src/*.v \| wc -l` = 86 | RTL |
 | GF16 dot4 canonical anchor = `0x47C0` | [`sim/tb_gf16_dot8.v`](sim/tb_gf16_dot8.v) `dot4_canonical` test passes | SIM |
 | GF16 dot8 16 randomised vectors match golden | `sim/tb_gf16_dot8.v` `dot8_tv0..tv15` pass locally | SIM |
 | Top-level `tt_um_ghtag_trinity_gf16` boots to `0x47C0` post-reset | [`.github/workflows/test.yaml`](.github/workflows/test.yaml) inline `tb_canonical` | SIM (CI-only) |
@@ -107,7 +107,7 @@ quote in customer-facing material until evidence lands":
   ([darpa.mil/research/programs/clara](https://www.darpa.mil/research/programs/clara))
   and tags modules to TA1 / TA1.1 / TA1.2 / TA1.4 buckets. It does **not**
   imply an award, sub-award, or selection.
-- ❌ **Production-grade formal verification across all 51 modules.** The
+- ❌ **Production-grade formal verification across all 86 modules.** The
   Coq/Rocq tree (`trios-coq/`, `coq/`) carries `Qed`-closed lemmas for a
   scoped subset (IGLA invariants, kernel LUT-NPU, several physics modules);
   the rest of the RTL is *not* fully formally verified. CLARA_TRACEABILITY.md

@@ -7,6 +7,12 @@
 `ifndef GF_FORMATS_V
 `define GF_FORMATS_V
 
+// Wrap in an unused dummy module so this file is syntactically legal
+// Verilog-2005 when picked up by `$(wildcard src/*.v)` in the cocotb /
+// iverilog flows. All parameters below remain reachable via
+// `gf_formats_params.<NAME>` if needed; no instance is created.
+module gf_formats_params;
+
 // ============================================================
 // GF Format Parameters (phi-optimized)
 // Formula: exp = round((N-1)/phi^2), mant = N - 1 - exp
@@ -161,4 +167,5 @@ localparam GF16_TOPS_PER_W_MAX    = 8'd79;   // 55 * 1.44
 // With AVS-96 + η≥0.93 (x5.4 total boost from baseline)
 localparam GF16_TOPS_PER_W_MAX_96 = 16'd297; // 55 * 5.4
 
+endmodule
 `endif // GF_FORMATS_V

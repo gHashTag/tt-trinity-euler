@@ -32,8 +32,21 @@ module int4_quantizer (
             default: scale = 16'h0800;
         endcase
 
-        // Scale: scaled = (fp16_in * scale) >> 15
-        scaled = (fp16_in * scale) >>> 15;
+        // Scale: scaled = (fp16_in * scale) >>> 15. Because the scale LUT
+        // above only emits powers of two (scale = 1 << (15 - scale_exp) for
+        // scale_exp in [0,7]), the multiply reduces to an arithmetic right
+        // shift by scale_exp. R-SI-1: no `*` operator.
+        case (scale_exp)
+            4'd0:    scaled = fp16_in;
+            4'd1:    scaled = fp16_in >>> 1;
+            4'd2:    scaled = fp16_in >>> 2;
+            4'd3:    scaled = fp16_in >>> 3;
+            4'd4:    scaled = fp16_in >>> 4;
+            4'd5:    scaled = fp16_in >>> 5;
+            4'd6:    scaled = fp16_in >>> 6;
+            4'd7:    scaled = fp16_in >>> 7;
+            default: scaled = fp16_in >>> 4;
+        endcase
 
         // Add zero point: zeroed = scaled + zero_point
         // zero_point is signed 3-bit [-4, 3]
@@ -88,8 +101,20 @@ module int4_dequantizer (
         else
             int4_signed = {1'b0, int4_in[2:0]};
 
-        // Dequant: fp16_out = int4_signed * scale
-        fp16_out = int4_signed * scale;
+        // Dequant: fp16_out = int4_signed * scale. Same power-of-two
+        // observation as the quantiser path — replace `*` with a left
+        // shift selected by scale_exp. R-SI-1 compliant.
+        case (scale_exp)
+            4'd0:    fp16_out = $signed({int4_signed, 15'd0});                    // <<15
+            4'd1:    fp16_out = $signed({int4_signed[3:0], 14'd0});               // <<14
+            4'd2:    fp16_out = $signed({{2{int4_signed[3]}}, int4_signed[2:0], 13'd0}); // <<13
+            4'd3:    fp16_out = $signed({{3{int4_signed[3]}}, int4_signed[2:0], 12'd0});
+            4'd4:    fp16_out = $signed({{4{int4_signed[3]}}, int4_signed[2:0], 11'd0});
+            4'd5:    fp16_out = $signed({{5{int4_signed[3]}}, int4_signed[2:0], 10'd0});
+            4'd6:    fp16_out = $signed({{6{int4_signed[3]}}, int4_signed[2:0],  9'd0});
+            4'd7:    fp16_out = $signed({{7{int4_signed[3]}}, int4_signed[2:0],  8'd0});
+            default: fp16_out = $signed({{4{int4_signed[3]}}, int4_signed[2:0], 11'd0});
+        endcase
     end
 
 endmodule

@@ -69,8 +69,8 @@ module fbb_active_path (
                 end
             end
 
-            // Leakage monitoring
-            avg_leakage <= (avg_leakage * 3 + leakage_mon) / 4;
+            // Leakage monitoring — R-SI-1: x*3 = (x<<1)+x, /4 = >>2
+            avg_leakage <= (((avg_leakage << 1) + avg_leakage) + leakage_mon) >> 2;
 
             // Leakage threshold check
             if (avg_leakage >= LEAKAGE_CRIT) begin
@@ -146,8 +146,7 @@ module fbb_active_path (
         end
     end
 
-    // FBB efficiency calculation
-    // Leakage reduction ~ (FBB_level / 400)^2
-    wire [7:0] efficiency = (fbb_level[7:0] * fbb_level[7:0]) >> 8;
+    // FBB efficiency calculation removed — was a dead debug wire computing
+    // a real square (DSP), violates R-SI-1. Not driven onto any output.
 
 endmodule

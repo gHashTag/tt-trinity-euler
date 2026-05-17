@@ -35,7 +35,7 @@ page — otherwise it does not exist.
 | R-SI-1 audit (zero new `*` in synth RTL) | green | `LINT` (CI workflow) | [`.github/workflows/no_star.yaml`](.github/workflows/no_star.yaml) |
 | Tile budget | 8×2 = 16 tiles on SKY130A | `SPEC` | [`info.yaml`](info.yaml) `tiles: "8x2"` |
 | Target clock | 50 MHz | `SPEC` (not yet `SYNTHESIS-REPORTED` on this branch) | [`info.yaml`](info.yaml) `clock_hz: 50000000` |
-| Module count under `src/` | 51 `.v` files | `MEASURED` (repo) | `ls src/*.v \| wc -l` |
+| Module count under `src/` | 86 `.v` files | `MEASURED` (repo) | `ls src/*.v \| wc -l` |
 | SUPER-CROWN module count | 18 (per `source_files`) | `SPEC` | [`info.yaml`](info.yaml) |
 | CLARA gap module count | 10/10 present as RTL | `SPEC` + `RTL` | [`info.yaml`](info.yaml) + per-row [CLARA_TRACEABILITY.md](CLARA_TRACEABILITY.md) |
 

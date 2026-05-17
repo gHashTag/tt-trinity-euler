@@ -29,7 +29,7 @@ see [COMPETITORS.md](COMPETITORS.md).
 
 ## What runs today
 
-- ✅ **RTL** — 51 synthesisable Verilog-2005 modules under [`src/`](src/); R-SI-1 (zero new `*` operators) enforced by [`.github/workflows/no_star.yaml`](.github/workflows/no_star.yaml).
+- ✅ **RTL** — 86 synthesisable Verilog-2005 modules under [`src/`](src/) (51 core e-engine + 35 v1.0.0 quantiser/power/format add-ons); R-SI-1 (zero new `*` operators) enforced by [`.github/workflows/no_star.yaml`](.github/workflows/no_star.yaml).
 - ✅ **Simulation** — Icarus testbench passes locally: `TOTAL PASS=17 FAIL=0 ALL PASS` (canonical GF16 anchor `0x47C0` + 16 dot8 vectors). Reproduce with the snippet under [Quick Start](#quick-start) or [BENCHMARKS.md §5](BENCHMARKS.md).
 - ✅ **CI** — `test.yaml` (canonical anchor) · `no_star.yaml` (R-SI-1) · `gds.yaml` (OpenLane2 SKY130A) · `fpga.yaml` · `tri-test.yml`.
 - ✅ **Shuttle** — submitted to Tiny Tapeout TTSKY26b on 2026-05-17 (8×2 tiles). See [`CHANGELOG.md`](CHANGELOG.md).

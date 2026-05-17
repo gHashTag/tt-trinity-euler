@@ -60,8 +60,9 @@ module purkinje_thermal_gate (
             gate_timer <= 32'd0;
             urgent_override <= 1'b0;
         end else begin
-            // Temperature smoothing (Purkinje-like adaptation)
-            smoothed_temp <= (smoothed_temp * 7 + temp_sensor) / 8;
+            // Temperature smoothing (Purkinje-like adaptation).
+            // R-SI-1: x*7 = (x<<3) - x; /8 = >>3.
+            smoothed_temp <= (((smoothed_temp << 3) - smoothed_temp) + temp_sensor) >> 3;
 
             // Dendritic potential integration
             if (spike_rate > SPIKE_HYSTERESIS) begin
