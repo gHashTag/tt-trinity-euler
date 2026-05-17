@@ -14,9 +14,14 @@ jobs:
 
       - name: Check for new * operators
         run: |
-          # Grandfathered: gf16_mul.v (legacy GF16 Karatsuba mantissa product)
-          # tb_*.v: simulation-only testbenches (use real, $display — not synth)
-          # R-SI-1: zero NEW * operators in synthesisable RTL
+          # Grandfathered: gf16_mul.v (legacy GF16 Karatsuba)
+          # R-SI-1: zero arithmetic * operators in synthesisable RTL
+          # Whitelist:
+          #   @(*) sensitivity lists
+          #   (* keep *) / (* no_retiming *) Yosys attributes
+          #   bit-select indices [N*VAR], [VAR*N+i] e.g. j*16+i, (i+1)*`TRN_PKT_W
+          #   replication counts {N*W{...}} in vector concatenation
+          #   parameter width expressions 4*`TRN_PKT_W in wire declarations
           FAIL=0
           for f in src/*.v; do
             base=$(basename "$f")
@@ -34,6 +39,8 @@ jobs:
               | grep -vE 'gi\s*\*\s*[0-9]+\s*\+' \
               | grep -vE '\*\s*[0-9]+\s*\+:' \
               | grep -vE '\*\s*`[A-Z_]+' \
+              | grep -vE '\[.*[a-z_][a-z0-9_]*\s*\*\s*[0-9]' \
+              | grep -vE '\{[0-9]+\*[A-Za-z_`]' \
               | grep '[^*]\*[^*/]' || true)
             if [ -n "$HITS" ]; then
               echo "FAIL $f:"

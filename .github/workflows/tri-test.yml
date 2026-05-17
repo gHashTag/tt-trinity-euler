@@ -47,6 +47,8 @@ jobs:
               | grep -vE 'gi\s*\*\s*[0-9]+\s*\+' \
               | grep -vE '\*\s*[0-9]+\s*\+:' \
               | grep -vE '\*\s*`[A-Z_]+' \
+              | grep -vE '\[.*[a-z_][a-z0-9_]*\s*\*\s*[0-9]' \
+              | grep -vE '\{[0-9]+\*[A-Za-z_`]' \
               | grep '[^*]\*[^*/]' || true)
             if [ -n "$HITS" ]; then
               echo "FAIL $f:"
