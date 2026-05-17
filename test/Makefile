@@ -3,11 +3,12 @@ SIM ?= icarus
 FST ?= -fst
 TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
-PROJECT_SOURCES = tt_um_ghtag_trinity_gf16.v gf16_mul.v gf16_add.v gf16_dot4.v trinity_gf16_tile.v trinity_router_2x2.v trinity_mesh_2x2.v trinity_master_fsm.v
+# All non-testbench source files (tb_*.v are simulation-only and excluded).
+PROJECT_SOURCES = $(filter-out $(wildcard $(SRC_DIR)/tb_*.v),$(wildcard $(SRC_DIR)/*.v))
 
 ifneq ($(GATES),yes)
 SIM_BUILD = sim_build/rtl
-VERILOG_SOURCES += $(addprefix $(SRC_DIR)/,$(PROJECT_SOURCES))
+VERILOG_SOURCES += $(PROJECT_SOURCES)
 else
 SIM_BUILD = sim_build/gl
 COMPILE_ARGS += -DGL_TEST -DFUNCTIONAL -DUSE_POWER_PINS -DSIM -DUNIT_DELAY=\#1
