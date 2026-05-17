@@ -18,6 +18,8 @@ VERILOG_SOURCES += $(PWD)/gate_level_netlist.v
 endif
 
 COMPILE_ARGS += -I$(SRC_DIR)
+# Tell tb.v we're running under cocotb (gates out its standalone driver).
+COMPILE_ARGS += -DCOCOTB_SIM
 VERILOG_SOURCES += $(PWD)/tb.v
 TOPLEVEL = tb
 COCOTB_TEST_MODULES = test

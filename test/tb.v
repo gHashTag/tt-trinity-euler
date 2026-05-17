@@ -29,10 +29,15 @@ module tb ();
       .rst_n  (rst_n)
   );
 
+`ifndef COCOTB_SIM
   always #10 clk = ~clk;
+`endif
 
   integer pass_count, fail_count, cycle_cnt;
 
+`ifndef COCOTB_SIM
+  // Standalone iverilog driver. Disabled under cocotb (which provides
+  // its own Clock + reset sequence via the Python test bench).
   initial begin
     pass_count = 0;
     fail_count = 0;
@@ -287,5 +292,6 @@ module tb ();
     $display("WATCHDOG TIMEOUT");
     $finish;
   end
+`endif
 
 endmodule
