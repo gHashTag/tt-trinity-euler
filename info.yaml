@@ -130,6 +130,13 @@ project:
     - "audit_log_ring_buffer.v"
     # D2D Network
     - "d2d_holo_mesh.v"
+    # PhD-Anchored Monitors (6)
+    - "bpb_lower_bound_guard.v"
+    - "cassini_post.v"
+    - "nca_entropy_monitor.v"
+    - "phi_distance_oracle.v"
+    - "plrm_counter.v"
+    - "strobe_seed_guard.v"
 
 pinout:
   ui[0]: "load_mode"
