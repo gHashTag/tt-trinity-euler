@@ -87,6 +87,7 @@ not in this table, it is **not** part of the supported status.
 | TRI-NET external integration API notes | [`docs/TRI_NET_API.md`](docs/TRI_NET_API.md) | SPEC-DRAFT |
 | Whitepaper / publication link index | [`docs/WHITEPAPER_LINKS.md`](docs/WHITEPAPER_LINKS.md) | INDEX |
 | 22FDX TOPS/W projection and Zenodo bundle readiness | [`docs/PROJECTIONS_22FDX.md`](docs/PROJECTIONS_22FDX.md) — all rows PROJECTED / PLANNED | PROJECTED / PLANNED |
+| TRI-NET 2026 Scientific Improvement Plan (e-engine view) | [`docs/SCIENTIFIC_IMPROVEMENT_PLAN.md`](docs/SCIENTIFIC_IMPROVEMENT_PLAN.md) — `target` / `projection` / `VERIFY` labelled; no `MEASURED` rows added | PLAN |
 | CLARA proof manifest (Coq/Rocq provenance) | [`docs/CLARA_PROOF_MANIFEST.md`](docs/CLARA_PROOF_MANIFEST.md) (commit `c3b80b1`) | SPEC + partial proof artefacts under [`trios-coq/`](trios-coq/) |
 | TTSKY26b shuttle submission | [`CHANGELOG.md`](CHANGELOG.md) `[TTSKY26b-submit] — 2026-05-17` | GDS-SUBMIT |
 | Apache-2.0 only | [`LICENSE`](LICENSE) + R-SI-6 grep guard | LICENSE |

@@ -72,6 +72,11 @@ and quoted; they do **not** add new measured rows to §2.
 - [`docs/PROJECTIONS_22FDX.md`](docs/PROJECTIONS_22FDX.md) — per-row
   assumption clauses for every "75 / 405 / 5.4× / ~20 TOPS / <1 W" line
   that appears in the README. **Every number there is `PROJECTED`.**
+- [`docs/SCIENTIFIC_IMPROVEMENT_PLAN.md`](docs/SCIENTIFIC_IMPROVEMENT_PLAN.md)
+  — 2026 plan §3 (EN-01..EN-03) tracks the energy-efficiency targets;
+  §8 "success metrics" points back at this file. **No new TOPS/W number
+  is introduced by the plan;** external `1000×` / `4000 TOPS/W` press
+  figures are `VERIFY`-only and not restated as fact.
 
 ---
 

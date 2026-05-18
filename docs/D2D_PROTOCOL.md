@@ -274,6 +274,7 @@ must be marked `PLANNED` whenever they appear in customer-facing material:
 | [`STATUS.md`](../STATUS.md) | Readiness ladder for everything in this repo. |
 | [`LINEUP.md`](../LINEUP.md) | Why Euler is the bridge / safety SKU in the line. |
 | [`TRI_NET_API.md`](TRI_NET_API.md) | External-integration view of the D2D surface. |
+| [`SCIENTIFIC_IMPROVEMENT_PLAN.md`](SCIENTIFIC_IMPROVEMENT_PLAN.md) | 2026 plan §2 (CL-01 / CL-03) and §4 (SN-02 / SN-03) track the D2D promotion targets — `target`-labelled, no row promoted here. |
 
 ---
 

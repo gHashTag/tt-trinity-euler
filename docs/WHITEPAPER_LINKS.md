@@ -81,6 +81,7 @@ reading order is:
 8. [`docs/GF16_BFLOAT16_NMSE.md`](GF16_BFLOAT16_NMSE.md) — accuracy protocol
 9. [`docs/TRI_NET_API.md`](TRI_NET_API.md) — external integration view
 10. [`docs/PROJECTIONS_22FDX.md`](PROJECTIONS_22FDX.md) — labelled projections only
+11. [`docs/SCIENTIFIC_IMPROVEMENT_PLAN.md`](SCIENTIFIC_IMPROVEMENT_PLAN.md) — TRI-NET 2026 plan (e-engine view; `target` / `projection` / `VERIFY` labels)
 
 ---
 

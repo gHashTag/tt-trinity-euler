@@ -232,3 +232,4 @@ TRI-NET material.
 - t27 conformance toolchain: <https://github.com/gHashTag/t27>
 - Repo benchmark policy: [BENCHMARKS.md](../BENCHMARKS.md)
 - Readiness ladder: [STATUS.md](../STATUS.md)
+- 2026 plan tracking the NMSE harness landing: [`docs/SCIENTIFIC_IMPROVEMENT_PLAN.md`](SCIENTIFIC_IMPROVEMENT_PLAN.md) §4 SN-01 + §5 PUB-02 (both `target`; **no `Δ_dB` number permitted in this repo until a `sim/nmse/euler_*.json` record exists**).

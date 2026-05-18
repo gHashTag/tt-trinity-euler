@@ -19,6 +19,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `docs/TRI_NET_API.md` — External-integration view: pinout, TIP v1.0, D2D — bring-up sequence and host driver shape.
 - `docs/WHITEPAPER_LINKS.md` — Value proposition + external publication / DOI / programme link index.
 - `docs/PROJECTIONS_22FDX.md` — 22FDX TOPS/W projection table (all rows `PROJECTED`) and Zenodo bundle readiness checklist (all rows `PLANNED`).
+- `docs/SCIENTIFIC_IMPROVEMENT_PLAN.md` — TRI-NET 2026 Scientific Improvement Plan, e-engine view: CL-01..CL-04 (DARPA-CLARA alignment), EN-01..EN-03 (energy efficiency / Triple-Deck), SN-01..SN-03 (SNN-TRI fusion hooks), PUB-01..PUB-03 (publication path), OS-01..OS-03 (open-source community), timeline (Q2..Q4 2026 + "open" for silicon), success metrics (committed artefacts + CI-green workflows only), references, anti-claims. `target` / `projection` / `VERIFY` labels per row; no `MEASURED` row added; no DARPA funding / silicon date / paper acceptance / `1000×` / `4000 TOPS/W` claim.
 
 ### Changed
 - Updated README with unified badge order and TRI-NET cross-references section

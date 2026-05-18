@@ -224,3 +224,4 @@ from PARTIAL to DONE:
 - TOPS/W disclosure: [BENCHMARKS.md §4](../BENCHMARKS.md)
 - Readiness ladder: [STATUS.md §1](../STATUS.md)
 - Sibling line position: [LINEUP.md](../LINEUP.md)
+- 2026 plan tracking Deck-1 promotion and cross-deck exclusivity: [`docs/SCIENTIFIC_IMPROVEMENT_PLAN.md`](SCIENTIFIC_IMPROVEMENT_PLAN.md) §3 EN-01 + EN-02 (both `target`; Deck-1 RBB remains `SPEC`-only until `src/rbb_active_path.v` lands).

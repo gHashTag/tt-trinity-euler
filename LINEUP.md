@@ -144,3 +144,7 @@ none of them weakens the existing [STATUS.md](STATUS.md) ladder.
 - [`docs/PROJECTIONS_22FDX.md`](docs/PROJECTIONS_22FDX.md) — 22FDX
   TOPS/W projection and Zenodo bundle readiness (labelled projections
   / plans only).
+- [`docs/SCIENTIFIC_IMPROVEMENT_PLAN.md`](docs/SCIENTIFIC_IMPROVEMENT_PLAN.md)
+  — TRI-NET 2026 Scientific Improvement Plan, e-engine view. CL / EN /
+  SN / PUB / OS tracks; `target` / `projection` / `VERIFY` labelled;
+  silicon-dependent rows are explicitly "open" (undated).

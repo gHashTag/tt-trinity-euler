@@ -79,6 +79,7 @@ are closed silicon and do not ship a native ternary path; see
 | [docs/TRI_NET_API.md](docs/TRI_NET_API.md) | External-integration view of the e-engine surface (pinout + TIP v1.0 + D2D) |
 | [docs/WHITEPAPER_LINKS.md](docs/WHITEPAPER_LINKS.md) | Value-proposition paragraph and external publication / DOI / programme link index |
 | [docs/PROJECTIONS_22FDX.md](docs/PROJECTIONS_22FDX.md) | 22FDX TOPS/W projection and Zenodo bundle readiness — projections / plans only |
+| [docs/SCIENTIFIC_IMPROVEMENT_PLAN.md](docs/SCIENTIFIC_IMPROVEMENT_PLAN.md) | TRI-NET 2026 Scientific Improvement Plan — e-engine view (CL / EN / SN / PUB / OS tracks; `target` / `projection` / `VERIFY` labels) |
 
 ---
 
