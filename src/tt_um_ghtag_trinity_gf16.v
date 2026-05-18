@@ -547,7 +547,30 @@ module tt_um_ghtag_trinity_gf16 (
     // testbench via the master FSM directly (not via TT pins, which are
     // exhausted by the legacy dot4/mesh result mux); they MUST be folded
     // into _unused here so synthesis keeps the registers.
+    // ---- Trinity Unified Computer: XCHIP opcode decoder (TTSKY26c prep) ----
+    // R-SI-1 clean, pure combinational. Wired on ui_in[7:0] so it does not
+    // disturb the canonical 0x47C0 anchor on {uio_out, uo_out}.
+    wire        xchip_is_xchip;
+    wire [3:0]  xchip_op;
+    wire        xchip_is_send;
+    wire        xchip_is_recv;
+    wire        xchip_is_barrier;
+    wire        xchip_is_triple_sign;
+    wire        xchip_is_broadcast;
+    xchip_opcode_decoder u_xchip_decoder (
+        .opcode         (ui_in),
+        .is_xchip       (xchip_is_xchip),
+        .xchip_op       (xchip_op),
+        .is_send        (xchip_is_send),
+        .is_recv        (xchip_is_recv),
+        .is_barrier     (xchip_is_barrier),
+        .is_triple_sign (xchip_is_triple_sign),
+        .is_broadcast   (xchip_is_broadcast)
+    );
+
     wire _unused = &{1'b0, mesh_dbg_tile0, ena, uio_in,
+                     xchip_is_xchip, xchip_op, xchip_is_send, xchip_is_recv,
+                     xchip_is_barrier, xchip_is_triple_sign, xchip_is_broadcast,
                      mesh_rcpt_checksum, mesh_rcpt_job_id,
                      mesh_rcpt_tile_id, mesh_rcpt_valid,
                      lucas_val, vsa_done, vsa_c,
