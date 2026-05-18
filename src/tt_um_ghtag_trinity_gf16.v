@@ -358,6 +358,30 @@ module tt_um_ghtag_trinity_gf16 (
         .multi_rcpt_ok(multi_rcpt_ok)
     );
 
+    // =========================================================================
+    // $TRI Token Accumulator (Euler: reward=2, source=multi_tile_receipt all_attested)
+    // Rising-edge detector on all_attested → 1-cycle attest_pulse_tri
+    // =========================================================================
+    reg  all_attested_prev;
+    wire attest_pulse_tri = all_attested && !all_attested_prev;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            all_attested_prev <= 1'b0;
+        else
+            all_attested_prev <= all_attested;
+    end
+
+    wire [15:0] tri_balance;
+    wire        tri_overflow;
+    tri_token_accumulator #(.WIDTH(16), .REWARD_BITS(2)) u_tri_acc (
+        .clk          (clk),
+        .rst_n        (rst_n),
+        .attest_pulse (attest_pulse_tri),
+        .reward_amount(2'd2),
+        .token_balance(tri_balance),
+        .overflow_flag(tri_overflow)
+    );
+
     // L-S15: Trinity ternary ALU-9 decoder (combinational demo, fed by hwrng)
     wire [1:0] alu_result;
     wire       alu_valid, alu_ok;
@@ -495,12 +519,19 @@ module tt_um_ghtag_trinity_gf16 (
         .byte_out (crown_byte_raw)
     );
 
-    assign uo_out  = crown_mode ? crown_byte_raw
+    // TRI token balance readout mode: ui_in[4:2] == 3'b111
+    // Exposes tri_balance[7:0] on uo_out and tri_balance[15:8] on uio_out.
+    // Canonical anchor (ui_in[4:2]==2'b00 i.e. ui_in[3:2]==2'b00) preserved.
+    wire tri_mode = (ui_in[4:2] == 3'b111);
+
+    assign uo_out  = tri_mode   ? tri_balance[7:0] :
+                     crown_mode ? crown_byte_raw
                                 : (final_result[7:0]  | input_echo[7:0]);
     // uio_out: legacy mesh result high byte by default; switches to CROWN status_byte
     // only when host asserts load_mode (ui_in[0]=1). This preserves the canonical
     // legacy test T4 which expects {uio_out, uo_out} == 0x47C0 when ui_in==0.
     wire [7:0] uio_legacy =
+        tri_mode                  ? tri_balance[15:8] :
         crown_mode                ? 8'h00 :
         (ui_in[0] && post_done)   ? status_byte :
                                      (final_result[15:8] | input_echo[15:8]);
@@ -526,12 +557,12 @@ module tt_um_ghtag_trinity_gf16 (
                      enc_done, enc_y,
                      bpb_total[23:8], bpb_samples,
                      hash_done, hash_digest,
-                     all_attested, agg_job_id, attested_mask,
+                     agg_job_id, attested_mask, tri_overflow,
                      alu_result, alu_valid,
                      ring_rd, phi_tick, phi_state,
                      wb_dat_r, wb_ack,
                      super_crown_ok,
                      rom_wb_ack, seq_acc, seq_instr,
-                     ui_in[7:4], 1'b0};
+                     ui_in[7:5], 1'b0};
 
 endmodule
