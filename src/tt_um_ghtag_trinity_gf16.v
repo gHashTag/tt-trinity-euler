@@ -547,6 +547,20 @@ module tt_um_ghtag_trinity_gf16 (
     // testbench via the master FSM directly (not via TT pins, which are
     // exhausted by the legacy dot4/mesh result mux); they MUST be folded
     // into _unused here so synthesis keeps the registers.
+
+    // ----------------------------------------------------------------
+    // Trinity TRI silicon: champion BPB oracle (TTSKY26c prep)
+    // Pure combinational ROM. R-SI-1 clean. Output folded into _unused.
+    // sel reuses ui_in[7:6] (also in _unused tie-off).
+    // ----------------------------------------------------------------
+    wire [15:0] bpb_oracle_data;
+    wire        bpb_oracle_valid;
+    champion_bpb_oracle u_bpb_oracle (
+        .sel       (ui_in[7:6]),
+        .data_out  (bpb_oracle_data),
+        .valid     (bpb_oracle_valid)
+    );
+
     wire _unused = &{1'b0, mesh_dbg_tile0, ena, uio_in,
                      mesh_rcpt_checksum, mesh_rcpt_job_id,
                      mesh_rcpt_tile_id, mesh_rcpt_valid,
@@ -563,6 +577,7 @@ module tt_um_ghtag_trinity_gf16 (
                      wb_dat_r, wb_ack,
                      super_crown_ok,
                      rom_wb_ack, seq_acc, seq_instr,
+                     bpb_oracle_data, bpb_oracle_valid,
                      ui_in[7:5], 1'b0};
 
 endmodule
