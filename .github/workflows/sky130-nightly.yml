@@ -29,28 +29,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Acquire frozen SKY130 toolchain image
-        id: image
-        run: |
-          set -euo pipefail
-          if docker pull "${TOOLCHAIN_IMAGE}"; then
-            echo "source=ghcr" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          echo "::warning::GHCR pull failed for ${TOOLCHAIN_IMAGE} — falling back to local build from docker/Dockerfile.sky130-toolchain"
-          if [ ! -f docker/Dockerfile.sky130-toolchain ]; then
-            echo "::error::No GHCR image and no local Dockerfile available — cannot proceed"
-            exit 1
-          fi
-          docker build \
-            -t "${TOOLCHAIN_IMAGE}" \
-            -f docker/Dockerfile.sky130-toolchain \
-            .
-          echo "source=local-build" >> "$GITHUB_OUTPUT"
-
       - name: Run frozen SKY130 toolchain (Docker image)
         id: run
         run: |
+          docker pull "${TOOLCHAIN_IMAGE}"
           docker run --rm \
             -v "${{ github.workspace }}":/workspace:ro \
             -v "${{ github.workspace }}/runs":/runs \
