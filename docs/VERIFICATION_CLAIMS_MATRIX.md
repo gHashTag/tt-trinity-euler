@@ -105,6 +105,34 @@ other docs, not this matrix):
 | `VCM-CLARA-001` | 10/10 CLARA gaps implemented as RTL on Euler. | [LINEUP.md §6](../LINEUP.md), [CLARA_TRACEABILITY.md](../CLARA_TRACEABILITY.md), [`docs/D2D_PROTOCOL.md`](D2D_PROTOCOL.md) §1.2 | Per-gap rows in `CLARA_TRACEABILITY.md`, modules under `src/` | `scripts/check_clara_traceability.sh` | `RTL` | "RTL" ≠ "measured on silicon". Cross-gap interaction proofs are `PLANNED`. |
 | `VCM-RSI-001` | R-SI-1: zero standalone `*` operators in synthesisable RTL (grandfathering only `gf16_mul.v`). | [`.github/workflows/tri-test.yml`](../.github/workflows/tri-test.yml) `rtl-r-si-1-check`, [`.github/workflows/no_star.yaml`](../.github/workflows/no_star.yaml) | CI grep over `src/*.v` | CI: `R-SI-1 Compliance Check` | `SIM` | Does NOT claim Coq-level proof of multiplier equivalence; only that the lexical surface is clean. |
 
+### 2.1 Reserved claim IDs (quick-win placeholders)
+
+These IDs are **reserved** by [`docs/ARCHITECTURE_QUICK_WINS.md`](ARCHITECTURE_QUICK_WINS.md)
+for numbers that will be filled in only when the corresponding evidence
+exists (silicon characterisation, post-layout simulation, MX comparison
+table). Until then, every row is `RESERVED`. The spec gate accepts
+references to these IDs from docs because the rows are present here; the
+rows MUST NOT be promoted out of `RESERVED` without an evidence link.
+
+| Claim ID | Reserved for | Promoted by | Status |
+|---|---|---|---|
+| `VCM-D2D-BW-001` | Per-lane D2D GT/s value (SKY130A and 22FDX projection) | Re-attached SKY130A timing log + 22FDX projection assumption clause | `RESERVED` |
+| `VCM-D2D-EN-001` | D2D fJ/bit characterisation | Silicon characterisation only — NOT projection | `RESERVED` |
+| `VCM-FORMATS-MX-001` | GF16 vs MX block-FP adjacency statement | README block-FP paragraph + supporting NMSE run | `RESERVED` |
+| `VCM-FORMATS-MX-002` | Per-format transcoding policy across D2D | RTL or sim evidence that the quantizer modules implement the named conversion costs | `RESERVED` |
+| `VCM-BIAS-001` | Body-bias operating point — `IDLE` (no bias) | Silicon characterisation under named PVT corner | `RESERVED` |
+| `VCM-BIAS-002` | Body-bias operating point — `RBB` | Silicon characterisation | `RESERVED` |
+| `VCM-BIAS-003` | Body-bias operating point — `FBB_OFF` | Silicon characterisation or post-layout SPICE | `RESERVED` |
+| `VCM-BIAS-004` | Body-bias operating point — `FBB_LOW` | Silicon characterisation or post-layout SPICE | `RESERVED` |
+| `VCM-BIAS-005` | Body-bias operating point — `FBB_MED` | Silicon characterisation or post-layout SPICE | `RESERVED` |
+| `VCM-BIAS-006` | Body-bias operating point — `FBB_HIGH` | Silicon characterisation or post-layout SPICE | `RESERVED` |
+| `VCM-BIAS-007` | Body-bias operating point — `FBB_MAX` | Silicon characterisation or post-layout SPICE | `RESERVED` |
+| `VCM-BIAS-008` | Body-bias operating point — `CAP_BOOST` (AVS-96 lift) | Silicon characterisation under sustained burst window | `RESERVED` |
+
+**Anti-claim for §2.1:** a `RESERVED` row is **not** a claim. It is an
+ID a future claim is allowed to use. Citing a `RESERVED` ID as if it
+carried a value is a bug.
+
 ---
 
 ## 3. Anti-claims that apply repo-wide

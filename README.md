@@ -34,9 +34,11 @@ see [COMPETITORS.md](COMPETITORS.md).
 
 - ✅ **RTL** — 86 synthesisable Verilog-2005 modules under [`src/`](src/) (51 core e-engine + 35 v1.0.0 quantiser/power/format add-ons); R-SI-1 (zero new `*` operators) enforced by [`.github/workflows/no_star.yaml`](.github/workflows/no_star.yaml).
 - ✅ **Simulation** — Icarus testbench passes locally: `TOTAL PASS=17 FAIL=0 ALL PASS` (canonical GF16 anchor `0x47C0` + 16 dot8 vectors). Reproduce with the snippet under [Quick Start](#quick-start) or [BENCHMARKS.md §5](BENCHMARKS.md).
-- ✅ **CI** — `test.yaml` (canonical anchor) · `no_star.yaml` (R-SI-1) · `gds.yaml` (OpenLane2 SKY130A) · `fpga.yaml` · `tri-test.yml`.
+- ✅ **CI** — `test.yaml` (canonical anchor) · `no_star.yaml` (R-SI-1) · `gds.yaml` (OpenLane2 SKY130A) · `fpga.yaml` · `tri-test.yml` (now includes the `trinet-specs-gate` job, see [Verification surface](#verification-surface)).
+- ✅ **Verification surface** — `docs/VERIFICATION_CLAIMS_MATRIX.md` indexes every numerical claim; D2D conformance assets (6 test cases) under `conformance/d2d/`; NMSE golden vectors under `tests/vectors/nmse/`; Triple-Decker FSM spec at `docs/TRIPLE_DECK_STATE_MACHINE.md`. See [Verification surface](#verification-surface) below.
 - ✅ **Shuttle** — submitted to Tiny Tapeout TTSKY26b on 2026-05-17 (8×2 tiles). See [`CHANGELOG.md`](CHANGELOG.md).
 - ⚠ **Silicon** — not yet returned from the foundry. **Any TOPS / TOPS-per-watt / power figure on this page is `PROJECTED`, not `MEASURED`**. The line you can quote: see [BENCHMARKS.md](BENCHMARKS.md).
+- ⚠ **Zenodo (per-shuttle)** — **no per-shuttle TTSKY26b DOI has been minted.** The only DOI cited in this repo is the line-wide Trinity Stack DOI [10.5281/zenodo.19227877](https://doi.org/10.5281/zenodo.19227877). The TTSKY26b bundle's metadata and manifest are pre-staged at [`.zenodo.json`](.zenodo.json) and [`docs/RELEASE_MANIFEST_TRINET_V1.md`](docs/RELEASE_MANIFEST_TRINET_V1.md); merging those files does NOT mint a DOI. See [Zenodo metadata and release manifest](#zenodo-metadata-and-release-manifest).
 
 ## How to verify
 
@@ -48,6 +50,87 @@ iverilog -I src -o /tmp/sim_dot8 \
 vvp /tmp/sim_dot8
 # expected tail: "TOTAL PASS=17  FAIL=0  ALL PASS"
 ```
+
+To re-run the TRI-NET spec/claims gate locally (no `iverilog` needed):
+
+```bash
+./scripts/check_trinet_specs.sh
+# expected tail: "RESULT: PASS"
+```
+
+The gate is also wired into CI as the `trinet-specs-gate` job in
+[`.github/workflows/tri-test.yml`](.github/workflows/tri-test.yml).
+
+---
+
+## Verification surface
+
+Every numerical claim in TRI-NET-tagged docs maps to a row in the
+[Verification Claims Matrix](docs/VERIFICATION_CLAIMS_MATRIX.md). The
+matrix uses the same readiness ladder as [STATUS.md](STATUS.md) and an
+explicit per-row Anti-claim column.
+
+### Status legend (applies repo-wide)
+
+| Symbol | Meaning |
+|---|---|
+| ✓ | Silicon-measured (NOT used in this repo today) |
+| ⊙ | RTL-simulation target (pre-silicon) |
+| ◷ | Architectural projection (first-principles, not from this design's simulation) |
+| `SPEC` / `SPEC-DRAFT` / `SPEC-FROZEN` | Specified at the markdown / Coq level |
+| `RTL` / `RTL-STUB` | RTL exists (`-STUB` = pin-correct but not full behaviour) |
+| `SIM` | A testbench under `sim/` or `test/` exercises it |
+| `SYNTH` / `GDS-SUBMIT` / `SILICON` | Synthesis / shuttle / silicon tier (no row in this repo is `SILICON`) |
+| `PROJECTED` | Extrapolation under stated assumptions (e.g. 22FDX TOPS/W) |
+| `PLANNED` | Scoped for a future wave |
+
+### Verification artefacts in this repo
+
+| Artefact | Purpose | Key claim IDs |
+|---|---|---|
+| [`docs/VERIFICATION_CLAIMS_MATRIX.md`](docs/VERIFICATION_CLAIMS_MATRIX.md) | Single index of every numerical TRI-NET claim + 5 repo-wide anti-claims (`NO-SILICON`, `NO-FAKE-DOI`, `NO-FUNDING`, `NO-MEASURED-TOPS`, `NO-MEASURED-NMSE`). | all `VCM-*` |
+| [`tests/vectors/nmse/gf16_vs_bfloat16_v0.json`](tests/vectors/nmse/gf16_vs_bfloat16_v0.json) + [`schema.json`](tests/vectors/nmse/schema.json) | Golden seeded vector pack (seed `0xDEADBEEF`, standard-normal, FP64 oracle, `1e-12` tolerance). Result fields all `null` — no measured silicon. | `VCM-NMSE-001`, `VCM-NMSE-002`, `VCM-GF16-001`, `VCM-GF16-002` |
+| [`conformance/D2D-CONFORMANCE-V0.json`](conformance/D2D-CONFORMANCE-V0.json) + [`conformance/d2d/d2d_tc_001..006.json`](conformance/d2d/) | D2D v0.1 packet format + 6 test cases: valid IDLE, valid SPIKE_SUMMARY, bad receipt, unsupported opcode (reserved KIND 0xF), RX timeout + retry, multi-chip ordering. | `VCM-D2D-001..004` |
+| [`docs/TRIPLE_DECK_STATE_MACHINE.md`](docs/TRIPLE_DECK_STATE_MACHINE.md) | `IDLE → RBB → FBB → CAP_BOOST → IDLE` FSM with guards, cooldown (`CD_NORMAL` / `CD_MAX`), brownout/overcurrent/thermal-red fallback. | `VCM-DECK-EXC-001`, `VCM-DECK-FSM-001` |
+| [`docs/ARCHITECTURE_QUICK_WINS.md`](docs/ARCHITECTURE_QUICK_WINS.md) | Competitor-informed quick wins (D2D bandwidth/fJ-bit table, UCIe-style conformance evidence, GF16 ↔ MX block-FP map, body-bias operating points, MLCommons phase mapping). | indexes new claim IDs to add as quick wins land |
+| [`scripts/check_trinet_specs.sh`](scripts/check_trinet_specs.sh) | Spec/claims CI gate (9 steps: claim IDs, cross-refs, anti-claims, DOI honesty, JSON parse, NMSE null-check, FSM states, D2D test cases, optional `t27c` parse). | enforces all of the above |
+
+### CI usage
+
+```bash
+# Local re-run of the gate (portable bash; needs python3 for JSON):
+./scripts/check_trinet_specs.sh
+
+# CI integration — automatic on every push/PR via:
+#   .github/workflows/tri-test.yml :: trinet-specs-gate
+```
+
+The gate is intentionally portable: no `jq`, no `rg`; only `bash`,
+`grep`, `sed`, and (optionally) `python3`. The `t27c` step is skipped
+gracefully when `t27c` is not on `PATH`.
+
+---
+
+## Zenodo metadata and release manifest
+
+> **R5-Honesty anti-claim — `NO-FAKE-DOI`.** No per-shuttle / per-repo
+> Zenodo DOI has been minted for TRI-1 Euler. The only DOI cited
+> anywhere in this repo is the line-wide Trinity Stack provenance DOI
+> [10.5281/zenodo.19227877](https://doi.org/10.5281/zenodo.19227877).
+> The spec gate rejects any non-canonical `10.5281/zenodo.*` reference
+> under `docs/`.
+
+The repo pre-stages the Zenodo deposition that *will* accompany a future
+TTSKY26b bundle:
+
+| File | Purpose |
+|---|---|
+| [`.zenodo.json`](.zenodo.json) | Bundle metadata (title, version, creators, license, keywords, related identifiers, anti-claim notes). Merging this file does NOT mint a DOI. |
+| [`docs/RELEASE_MANIFEST_TRINET_V1.md`](docs/RELEASE_MANIFEST_TRINET_V1.md) | Manifest of files / artefacts the bundle will contain, SHA-256 hashes at manifest commit, pre-upload checklist, explicit "no DOI minted until Zenodo deposition is actually published" anti-claim. |
+
+The manifest's pre-upload checklist names the three logs (`sim/logs/`,
+`boards/openlane2/`, `boards/fpga/`) that MUST be re-attached before any
+deposition can be uploaded.
 
 ## Why this is different
 
@@ -80,6 +163,14 @@ are closed silicon and do not ship a native ternary path; see
 | [docs/WHITEPAPER_LINKS.md](docs/WHITEPAPER_LINKS.md) | Value-proposition paragraph and external publication / DOI / programme link index |
 | [docs/PROJECTIONS_22FDX.md](docs/PROJECTIONS_22FDX.md) | 22FDX TOPS/W projection and Zenodo bundle readiness — projections / plans only |
 | [docs/SCIENTIFIC_IMPROVEMENT_PLAN.md](docs/SCIENTIFIC_IMPROVEMENT_PLAN.md) | TRI-NET 2026 Scientific Improvement Plan — e-engine view (CL / EN / SN / PUB / OS tracks; `target` / `projection` / `VERIFY` labels) |
+| [docs/VERIFICATION_CLAIMS_MATRIX.md](docs/VERIFICATION_CLAIMS_MATRIX.md) | Single index of every numerical TRI-NET claim, with Anti-claim column per row + 5 repo-wide anti-claims |
+| [docs/TRIPLE_DECK_STATE_MACHINE.md](docs/TRIPLE_DECK_STATE_MACHINE.md) | `IDLE → RBB → FBB → CAP_BOOST → IDLE` FSM spec — guards, cooldown, brownout/overcurrent/thermal-red fallback |
+| [docs/ARCHITECTURE_QUICK_WINS.md](docs/ARCHITECTURE_QUICK_WINS.md) | Competitor-informed quick wins for Euler (D2D bandwidth/fJ-bit table, UCIe-style conformance, GF16 ↔ MX block-FP map, body-bias operating points) |
+| [docs/RELEASE_MANIFEST_TRINET_V1.md](docs/RELEASE_MANIFEST_TRINET_V1.md) | Zenodo bundle manifest — files, hashes, related identifiers, pre-upload checklist, explicit "no DOI minted" anti-claim |
+| [`.zenodo.json`](.zenodo.json) | Zenodo deposition metadata (title, version, creators, license, keywords). Merging does NOT mint a DOI. |
+| [`conformance/D2D-CONFORMANCE-V0.json`](conformance/D2D-CONFORMANCE-V0.json) + [`conformance/d2d/`](conformance/d2d/) | D2D v0.1 conformance spec + 6 test cases (valid IDLE, valid SPIKE_SUMMARY, bad receipt, unsupported opcode, RX timeout/retry, multi-chip ordering) |
+| [`tests/vectors/nmse/`](tests/vectors/nmse/) | NMSE golden vector pack (`gf16_vs_bfloat16_v0.json`) + schema. Seeded; result fields all `null`. |
+| [`scripts/check_trinet_specs.sh`](scripts/check_trinet_specs.sh) | TRI-NET spec/claims CI gate (9 steps; portable bash; t27c optional). |
 | [.github/issues/ISSUES_SUMMARY.md](.github/issues/ISSUES_SUMMARY.md) | Issue pack for the 2026 SIP — EPIC + 16 child issue drafts; numeric prefixes are local plan IDs (not GitHub issue numbers until [`create_issues.sh`](.github/issues/create_issues.sh) is run with `--apply`) |
 
 ---
@@ -87,9 +178,12 @@ are closed silicon and do not ship a native ternary path; see
 ## Table of Contents
 
 - [Quick Start](#quick-start)
+- [Verification surface](#verification-surface)
+- [Zenodo metadata and release manifest](#zenodo-metadata-and-release-manifest)
 - [What is e-engine?](#what-is-e-engine)
 - [Sacred Formula](#sacred-formula)
 - [Architecture](#architecture)
+- [Architecture Quick Wins](#architecture-quick-wins)
 - [SUPER-CROWN Modules](#super-crown-modules)
 - [CLARA AI Safety Gaps](#clara-ai-safety-gaps)
 - [D2D Holo Mesh](#d2d-mesh-network)
@@ -195,6 +289,33 @@ This chip is the **e^q** factor — natural exponential growth.
 │  D2D HOLO MESH (4-port N/E/S/W router)                                │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## Architecture Quick Wins
+
+Competitor-informed quick wins specific to Euler are listed in
+[`docs/ARCHITECTURE_QUICK_WINS.md`](docs/ARCHITECTURE_QUICK_WINS.md).
+Highlights — all grounded in current repo state, none change RTL
+semantics:
+
+| ID | Title | Status |
+|---|---|---|
+| QW-E-1 | D2D bandwidth / fJ-per-bit table — reserves `VCM-D2D-BW-001` / `VCM-D2D-EN-001`, leaves the fJ/bit cell deliberately empty until silicon. | `SPEC-DRAFT` |
+| QW-E-2 | UCIe-style D2D conformance evidence block (frame format / integrity / retry / vectors). | `SPEC-DRAFT` (assets in `conformance/`) |
+| QW-E-3 | GF16 ↔ MX block-FP interoperability map — positions GF16 next to MXFP8/E5M2 without claiming compliance. | `SPEC-DRAFT` |
+| QW-E-4 | D2D conformance CI vectors wired into the spec gate. | **Done** — `scripts/check_trinet_specs.sh` step 8 |
+| QW-E-5 | R5 honest status legend on every TOPS / NMSE / fJ-bit row. | **Done** — legend above + matrix |
+| QW-E-6 | Triple-Decker FSM → MLCommons inference power-phase mapping. | `SPEC-DRAFT` |
+| QW-E-7 | Body-bias operating-point table (RBB / Nominal / FBB / CAP_BOOST). | `SPEC-DRAFT` |
+| QW-E-9 | NVDLA-class positioning paragraph (Euler vs NVDLA on numeric, safety, low-power axes). | `SPEC-DRAFT` |
+| QW-E-10 | Per-deck power-delta measurement plan stub — promotes `VCM-TOPS-001..003` only after `boards/measurements/` is non-empty. | `PLANNED` |
+
+> **Anti-claim:** none of the above changes the TOPS/W, NMSE, fJ/bit, or
+> silicon claims. They make the *evidence surface* legible to integrators
+> fluent in UCIe / MX / MLCommons. See
+> [`docs/ARCHITECTURE_QUICK_WINS.md`](docs/ARCHITECTURE_QUICK_WINS.md)
+> §10 for the explicit "what this doc does NOT propose" list.
 
 ---
 
