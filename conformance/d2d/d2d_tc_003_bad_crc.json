@@ -1,0 +1,40 @@
+{
+  "tc_id": "D2D-TC-003",
+  "name": "bad_receipt",
+  "spec": "conformance/D2D-CONFORMANCE-V0.json",
+  "tier": "SPEC-DRAFT",
+  "frame": {
+    "sync": 1,
+    "kind_hex": "0x1",
+    "kind_name": "SPIKE_SUMMARY",
+    "epoch_dec": 43,
+    "epoch_hex": "0x2B",
+    "payload": {
+      "spike_count_bits4": 5,
+      "spike_vec_bits8_hex": "0xA3"
+    },
+    "payload_bits_concat_hex": "0x5A3",
+    "receipt_hex": "0x00000000",
+    "receipt_expected_hex": "0xDEADC0DE",
+    "receipt_construction_note": "Sent receipt 0x00000000 does NOT match BLAKE3(KIND,EPOCH,PAYLOAD)[0..3]. This frame is intentionally malformed."
+  },
+  "expected": {
+    "accept": false,
+    "dropped": true,
+    "advance_epoch_to": 44,
+    "increment_counter": "bad_receipt_count",
+    "audit_ring_write": true,
+    "audit_row": "BAD_RECEIPT kind=0x1 epoch=0x2B expected=0xDEADC0DE got=0x00000000",
+    "restraint_hold_emitted_after_consecutive": 3,
+    "restraint_hold_payload_reason_hex": "0x01"
+  },
+  "retry_policy": {
+    "max_retries": 3,
+    "backoff_cycles": [16, 64, 256],
+    "on_exhaustion": "emit RESTRAINT_HOLD upstream and write a BAD_RECEIPT row for each failed attempt."
+  },
+  "honesty": {
+    "is_silicon": false,
+    "is_simulated": false
+  }
+}

@@ -80,6 +80,23 @@ jobs:
           echo "=== Checking tiles = 8x2 ==="
           grep -q 'tiles.*8x2' info.yaml && echo "PASS: tiles=8x2" || (echo "FAIL: wrong tiles" && exit 1)
 
+  trinet-specs-gate:
+    name: TRI-NET specs / claims gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python (for JSON parsing)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run TRI-NET spec gate
+        run: |
+          chmod +x scripts/check_trinet_specs.sh
+          ./scripts/check_trinet_specs.sh
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true

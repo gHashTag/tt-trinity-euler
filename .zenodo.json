@@ -1,0 +1,96 @@
+{
+  "title": "TRI-1 Euler — Trinity TRI-NET e-engine (8x2 SUPER-CROWN + 10 CLARA gaps + D2D holo mesh)",
+  "description": "Open-source RTL for the TRI-1 Euler chip, the e-engine SKU of the Trinity TRI-NET sacred-constant triplet (phi-anchor / e-engine / gamma-surface). Submitted to Tiny Tapeout TTSKY26b on SKY130A. Includes 86+ synthesisable Verilog-2005 modules under src/, the GF16 inner-product engine, the d2d_holo_mesh stub, the BLAKE3 audit-receipt path, and 10 DARPA-CLARA-style AI safety gaps. This bundle is open RTL and open PDK only — no silicon has returned. All TOPS/W, NMSE, and bandwidth figures in the accompanying docs are explicitly PROJECTED / SPEC-DRAFT / SIMULATED per docs/VERIFICATION_CLAIMS_MATRIX.md.",
+  "upload_type": "software",
+  "creators": [
+    {
+      "name": "Vasilev, Dmitrii",
+      "affiliation": "Trinity Stack"
+    }
+  ],
+  "keywords": [
+    "open silicon",
+    "Tiny Tapeout",
+    "SKY130A",
+    "22FDX",
+    "FD-SOI",
+    "body bias",
+    "RBB",
+    "FBB",
+    "AVS-96",
+    "ternary",
+    "BitNet b1.58",
+    "GF16",
+    "block floating point",
+    "VSA",
+    "neuromorphic",
+    "DARPA CLARA",
+    "AI safety",
+    "BLAKE3",
+    "audit ring",
+    "die-to-die",
+    "D2D",
+    "TRI-NET",
+    "TRI-1 Euler",
+    "Verilog-2005",
+    "R-SI-1"
+  ],
+  "license": "Apache-2.0",
+  "access_right": "open",
+  "version": "v1.0.0-ttsky26b",
+  "language": "eng",
+  "related_identifiers": [
+    {
+      "relation": "isPartOf",
+      "identifier": "10.5281/zenodo.19227877",
+      "resource_type": "software",
+      "scheme": "doi"
+    },
+    {
+      "relation": "isSupplementTo",
+      "identifier": "https://github.com/gHashTag/tt-trinity-euler",
+      "resource_type": "software",
+      "scheme": "url"
+    },
+    {
+      "relation": "isCompiledBy",
+      "identifier": "https://github.com/gHashTag/t27",
+      "resource_type": "software",
+      "scheme": "url"
+    },
+    {
+      "relation": "references",
+      "identifier": "https://github.com/gHashTag/tt-trinity-phi",
+      "resource_type": "software",
+      "scheme": "url"
+    },
+    {
+      "relation": "references",
+      "identifier": "https://github.com/gHashTag/tt-trinity-gamma",
+      "resource_type": "software",
+      "scheme": "url"
+    },
+    {
+      "relation": "references",
+      "identifier": "https://app.tinytapeout.com/shuttles/ttsky26b",
+      "resource_type": "publication-other",
+      "scheme": "url"
+    },
+    {
+      "relation": "cites",
+      "identifier": "arXiv:2402.17764",
+      "resource_type": "publication-article",
+      "scheme": "arxiv"
+    },
+    {
+      "relation": "cites",
+      "identifier": "arXiv:2310.10537",
+      "resource_type": "publication-article",
+      "scheme": "arxiv"
+    }
+  ],
+  "communities": [
+    { "identifier": "tiny-tapeout" }
+  ],
+  "notes": "R5-HONEST disclosure. This bundle ships RTL + simulation + spec evidence only. TOPS/W (75 baseline, 405 boosted, 5.4x AVS-96 boost) are PROJECTED to a 22FDX-class node under stated assumptions per docs/PROJECTIONS_22FDX.md; the SKY130A demonstrator does not run at that envelope and no silicon measurement exists. GF16 vs bfloat16 NMSE is a SPEC-DRAFT protocol per docs/GF16_BFLOAT16_NMSE.md with a golden vector pack at tests/vectors/nmse/gf16_vs_bfloat16_v0.json; no NMSE number is quoted. The line-wide Trinity Stack DOI (10.5281/zenodo.19227877) is the only DOI cited in this repo. NO PER-REPO TTSKY26b ZENODO DOI HAS BEEN MINTED. This .zenodo.json describes the metadata that WILL accompany a future Zenodo deposition if and when one is uploaded; the act of merging this file does NOT mint a DOI. See docs/RELEASE_MANIFEST_TRINET_V1.md for the bundle manifest and the explicit no-DOI-minted anti-claim."
+}
