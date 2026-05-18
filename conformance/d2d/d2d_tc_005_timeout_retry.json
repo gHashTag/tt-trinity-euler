@@ -1,0 +1,35 @@
+{
+  "tc_id": "D2D-TC-005",
+  "name": "rx_timeout_and_retry",
+  "spec": "conformance/D2D-CONFORMANCE-V0.json",
+  "tier": "SPEC-DRAFT",
+  "scenario": {
+    "description": "RX channel goes silent (no SYNC) for >= 256 cycles. Receiver must escalate to RESTRAINT_HOLD and recover when SYNC returns.",
+    "timeline_cycles": [
+      { "t": 0,    "event": "last valid SYNC observed on w_rx" },
+      { "t": 256,  "event": "watchdog fires: emit RESTRAINT_HOLD upstream, write RX_STUCK audit row" },
+      { "t": 320,  "event": "SYNC re-asserts on w_rx; receiver clears watchdog and resumes IDLE" },
+      { "t": 336,  "event": "first post-recovery frame accepted normally" }
+    ]
+  },
+  "expected": {
+    "watchdog_fires_at_cycle": 256,
+    "restraint_hold_emitted": true,
+    "restraint_hold_min_cycles": 1,
+    "restraint_hold_payload_reason_hex": "0x02",
+    "audit_ring_write": true,
+    "audit_row": "RX_STUCK face=W stalled_cycles=256",
+    "recovery_state": "IDLE",
+    "no_silent_data_loss": true,
+    "retry_policy": {
+      "max_retries": 3,
+      "backoff_cycles": [16, 64, 256],
+      "applies_to": "downstream re-emission of any frame that the upstream side acknowledges was lost"
+    }
+  },
+  "honesty": {
+    "is_silicon": false,
+    "is_simulated": false,
+    "note": "Current d2d_holo_mesh.v stub does not implement the watchdog. The expected behaviour above is SPEC-DRAFT until a sim/ testbench under sim/tb_d2d_*.v exercises it."
+  }
+}

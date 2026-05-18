@@ -1,0 +1,90 @@
+{
+  "vector_set_id": "NMSE-GF16-BF16-V0",
+  "version": "0.1.0",
+  "protocol_doc": "docs/GF16_BFLOAT16_NMSE.md",
+  "claim_ids": ["VCM-NMSE-001", "VCM-NMSE-002", "VCM-GF16-001", "VCM-GF16-002"],
+  "tier": "SPEC-DRAFT",
+  "honesty": {
+    "is_measured_silicon": false,
+    "is_measured_bf16_npu": false,
+    "is_simulated": false,
+    "note": "Vector pack only. Numeric result fields are null until a sim/nmse/euler_*.json record exists per GF16_BFLOAT16_NMSE.md §5."
+  },
+  "input_geometry": {
+    "n_random_vectors": 16,
+    "vector_length": 8,
+    "element_dtype_reference": "fp64",
+    "element_dtype_under_test": "gf16",
+    "element_dtype_baseline": "bfloat16"
+  },
+  "rng": {
+    "name": "numpy.random.Generator(PCG64)",
+    "seed_u32": 3735928559,
+    "seed_hex": "0xDEADBEEF",
+    "must_match_testbench": "sim/tb_gf16_dot8.v",
+    "sampling_order": "for i in 0..15: a_i = rng.standard_normal(8); b_i = rng.standard_normal(8)"
+  },
+  "distribution": {
+    "name": "standard_normal",
+    "mean": 0.0,
+    "stddev": 1.0,
+    "support": "ℝ",
+    "clamp_fp64": null,
+    "rationale": "Matches the existing tb_gf16_dot8.v pattern; isotropic, easy to reason about under NMSE."
+  },
+  "canonical_anchor": {
+    "name": "dot4_canonical",
+    "a": [1, 2, 3, 4],
+    "b": [1, 2, 3, 4],
+    "expected_gf16_hex": "0x47C0",
+    "expected_fp64": 30.0,
+    "comment": "Bit-exact under FORMAT-SPEC-001 mapping; backed by sim/tb_gf16_dot8.v anchor row."
+  },
+  "baseline_statement": {
+    "gf16_reference": "GF16 path is the existing src/gf16_dot4.v + src/gf16_dot8.v RTL driven via sim/tb_gf16_dot8.v.",
+    "bfloat16_reference": "Software round-trip: fp64 -> bfloat16 (round-to-nearest-even, no subnormal trap) -> multiply pairwise in bfloat16, accumulate in fp32, round final accumulator back to bfloat16 -> decode to fp64.",
+    "fp64_oracle": "y = sum_i (a_i_fp64 * b_i_fp64) computed in fp64."
+  },
+  "tolerance": {
+    "nmse_absolute": 1.0e-12,
+    "nmse_relative": 1.0e-9,
+    "canonical_anchor_must_be_bit_exact": true,
+    "rationale": "FP64 reference path is deterministic; cross-implementation drift below 1e-12 is below the noise floor of double-precision sums for N=8."
+  },
+  "reporting": {
+    "result_path_template": "sim/nmse/{chip}_{date}.json",
+    "result_schema": "tests/vectors/nmse/schema.json#/definitions/Result",
+    "required_fields": [
+      "format",
+      "chip",
+      "n_vectors",
+      "seed",
+      "nmse_mean",
+      "nmse_p99",
+      "nmse_db_mean",
+      "canonical_anchor_exact",
+      "tier",
+      "tool_versions"
+    ]
+  },
+  "result_skeleton": {
+    "format": "gf16",
+    "chip": "euler",
+    "n_vectors": 16,
+    "seed": 3735928559,
+    "nmse_mean": null,
+    "nmse_p99": null,
+    "nmse_db_mean": null,
+    "canonical_anchor_exact": null,
+    "tier": "SPEC-DRAFT",
+    "tool_versions": {
+      "iverilog": null,
+      "python": null
+    }
+  },
+  "prohibited_promotions": [
+    "Do not change seed_u32 without bumping vector_set_id and adding a row to docs/VERIFICATION_CLAIMS_MATRIX.md.",
+    "Do not write a number into nmse_mean/nmse_p99/nmse_db_mean in this file. Results live in sim/nmse/, not here.",
+    "Do not relabel tier to MEASURED unless silicon returns and the run is reproduced from the named seed."
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "tests/vectors/nmse/schema.json",
+  "title": "TRI-NET NMSE Vector Pack + Result Schema",
+  "description": "Informal schema for NMSE golden vectors and result records. See docs/GF16_BFLOAT16_NMSE.md and docs/VERIFICATION_CLAIMS_MATRIX.md.",
+  "type": "object",
+  "definitions": {
+    "VectorPack": {
+      "type": "object",
+      "required": [
+        "vector_set_id",
+        "version",
+        "tier",
+        "honesty",
+        "input_geometry",
+        "rng",
+        "distribution",
+        "canonical_anchor",
+        "baseline_statement",
+        "tolerance",
+        "reporting",
+        "result_skeleton"
+      ],
+      "properties": {
+        "vector_set_id": { "type": "string", "pattern": "^[A-Z0-9-]+$" },
+        "version": { "type": "string" },
+        "tier": { "enum": ["SPEC-DRAFT", "SPEC-FROZEN", "SIMULATED"] },
+        "honesty": {
+          "type": "object",
+          "required": ["is_measured_silicon", "is_measured_bf16_npu"],
+          "properties": {
+            "is_measured_silicon": { "const": false },
+            "is_measured_bf16_npu": { "const": false }
+          }
+        },
+        "input_geometry": {
+          "type": "object",
+          "required": ["n_random_vectors", "vector_length", "element_dtype_reference", "element_dtype_under_test", "element_dtype_baseline"]
+        },
+        "rng": {
+          "type": "object",
+          "required": ["name", "seed_u32", "sampling_order"]
+        },
+        "distribution": {
+          "type": "object",
+          "required": ["name", "rationale"]
+        },
+        "canonical_anchor": {
+          "type": "object",
+          "required": ["name", "a", "b", "expected_gf16_hex", "expected_fp64"]
+        },
+        "tolerance": {
+          "type": "object",
+          "required": ["nmse_absolute", "canonical_anchor_must_be_bit_exact"]
+        }
+      }
+    },
+    "Result": {
+      "type": "object",
+      "required": [
+        "format",
+        "chip",
+        "n_vectors",
+        "seed",
+        "nmse_mean",
+        "nmse_p99",
+        "nmse_db_mean",
+        "canonical_anchor_exact",
+        "tier",
+        "tool_versions"
+      ],
+      "properties": {
+        "format": { "enum": ["gf16", "bf16"] },
+        "chip": { "enum": ["phi", "euler", "gamma"] },
+        "n_vectors": { "type": "integer", "minimum": 1 },
+        "seed": { "type": "integer" },
+        "nmse_mean": { "type": ["number", "null"], "minimum": 0 },
+        "nmse_p99": { "type": ["number", "null"], "minimum": 0 },
+        "nmse_db_mean": { "type": ["number", "null"] },
+        "canonical_anchor_exact": { "type": ["boolean", "null"] },
+        "tier": { "enum": ["SPEC-DRAFT", "SIMULATED", "MEASURED"] },
+        "tool_versions": {
+          "type": "object",
+          "properties": {
+            "iverilog": { "type": ["string", "null"] },
+            "python": { "type": ["string", "null"] }
+          }
+        }
+      }
+    }
+  }
+}

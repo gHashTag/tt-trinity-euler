@@ -1,0 +1,102 @@
+{
+  "spec_id": "D2D-CONFORMANCE-V0",
+  "version": "0.1.0",
+  "applies_to": ["TRI-1 Phi (#4914)", "TRI-1 Euler (#4915)", "TRI-1 Gamma (#4913)"],
+  "protocol_doc": "docs/D2D_PROTOCOL.md",
+  "claim_ids": ["VCM-D2D-001", "VCM-D2D-002", "VCM-D2D-003", "VCM-D2D-004"],
+  "tier": "SPEC-DRAFT",
+  "honesty": {
+    "is_silicon_measurement": false,
+    "is_rtl_full_router": false,
+    "current_rtl_status": "RTL-STUB: src/d2d_holo_mesh.v pin-correct single SYNC strobe + registered TX/RX; full mesh router PLANNED.",
+    "note": "These conformance cases define expected receiver behaviour. The current stub MAY only implement the IDLE, SPIKE_SUMMARY, GF_TAG, and SYNC behaviours; other kinds are SPEC-DRAFT."
+  },
+  "frame_format": {
+    "fields": [
+      { "name": "SYNC",    "width_bits": 1,  "notes": "High pulse on w_tx; marks frame boundary." },
+      { "name": "KIND",    "width_bits": 4,  "notes": "Frame kind — see kind_registry." },
+      { "name": "EPOCH",   "width_bits": 8,  "notes": "Monotonic frame epoch (wraps); pairs with audit-ring epoch." },
+      { "name": "PAYLOAD", "width_bits": "variable", "notes": "Per-kind payload — see kind_registry." },
+      { "name": "RECEIPT", "width_bits": 32, "notes": "Truncated BLAKE3 over (KIND, EPOCH, PAYLOAD)." }
+    ],
+    "endianness": "MSB-first on the serial wire",
+    "symbol_clock": "clk (with ena gating, rst_n active-low)"
+  },
+  "kind_registry": [
+    { "kind_hex": "0x0", "name": "IDLE",            "direction": "any",         "payload_bits": 0,  "rtl_status_today": "stub-implements" },
+    { "kind_hex": "0x1", "name": "SPIKE_SUMMARY",   "direction": "Gamma->Euler","payload_bits": 12, "rtl_status_today": "stub-implements" },
+    { "kind_hex": "0x2", "name": "GF_TAG",          "direction": "any",         "payload_bits": 4,  "rtl_status_today": "stub-implements" },
+    { "kind_hex": "0x3", "name": "RECEIPT_BEACON",  "direction": "Euler->any",  "payload_bits": 32, "rtl_status_today": "SPEC-DRAFT" },
+    { "kind_hex": "0x4", "name": "RESTRAINT_HOLD",  "direction": "Euler->any",  "payload_bits": 8,  "rtl_status_today": "SPEC-DRAFT" },
+    { "kind_hex": "0x5", "name": "AUDIT_FLUSH",     "direction": "Euler->any",  "payload_bits": 8,  "rtl_status_today": "SPEC-DRAFT" },
+    { "kind_hex": "0xE", "name": "LAYER_FROZEN",    "direction": "Euler->Gamma","payload_bits": 1,  "rtl_status_today": "RTL (gate)" },
+    { "kind_hex": "0xF", "name": "RESERVED",        "direction": "n/a",         "payload_bits": 0,  "rtl_status_today": "must-ignore" }
+  ],
+  "timing": {
+    "watchdog_rx_stuck_cycles": 256,
+    "min_restraint_hold_cycles": 1,
+    "max_retries_on_bad_receipt": 3,
+    "retry_backoff_cycles": [16, 64, 256]
+  },
+  "ordering": {
+    "rule": "Within a single TX face, frames are delivered in epoch order; epoch values are monotonic per face and wrap modulo 2^8.",
+    "cross_face": "No cross-face ordering is guaranteed; receivers MUST tolerate interleaving between N/E/S/W RX streams.",
+    "multi_chip": "Across multiple Eulers, ordering is established by the BLAKE3 RECEIPT_BEACON epoch (kind 0x3). A receiver MUST drop a frame whose (kind, epoch, payload) hashes to a receipt different from the trailing RECEIPT field."
+  },
+  "test_cases": [
+    {
+      "id": "D2D-TC-001",
+      "name": "valid_header_idle",
+      "kind": "IDLE",
+      "vector_file": "conformance/d2d/d2d_tc_001_valid_idle.json",
+      "expected_receiver_action": "accept; advance epoch counter; no audit-ring write."
+    },
+    {
+      "id": "D2D-TC-002",
+      "name": "valid_header_spike_summary",
+      "kind": "SPIKE_SUMMARY",
+      "vector_file": "conformance/d2d/d2d_tc_002_valid_spike.json",
+      "expected_receiver_action": "accept; latch spike_count + spike_vec; write SPIKE_SUMMARY row to audit ring."
+    },
+    {
+      "id": "D2D-TC-003",
+      "name": "bad_receipt",
+      "kind": "SPIKE_SUMMARY",
+      "vector_file": "conformance/d2d/d2d_tc_003_bad_crc.json",
+      "expected_receiver_action": "drop frame; increment bad_receipt counter; on 3rd consecutive failure, emit RESTRAINT_HOLD upstream and write a BAD_RECEIPT row to audit ring."
+    },
+    {
+      "id": "D2D-TC-004",
+      "name": "unsupported_opcode",
+      "kind": "RESERVED_KIND_0xF",
+      "vector_file": "conformance/d2d/d2d_tc_004_unsupported_opcode.json",
+      "expected_receiver_action": "ignore payload but advance epoch; write UNKNOWN_KIND row to audit ring; MUST NOT assert RESTRAINT_HOLD (kind 0xF is reserved and may carry future-version traffic)."
+    },
+    {
+      "id": "D2D-TC-005",
+      "name": "rx_timeout_and_retry",
+      "kind": "n/a",
+      "vector_file": "conformance/d2d/d2d_tc_005_timeout_retry.json",
+      "expected_receiver_action": "after 256 idle cycles with no SYNC, emit RESTRAINT_HOLD upstream and write RX_STUCK row to audit ring; resume from IDLE once SYNC re-asserts."
+    },
+    {
+      "id": "D2D-TC-006",
+      "name": "multi_chip_ordering",
+      "kind": "RECEIPT_BEACON",
+      "vector_file": "conformance/d2d/d2d_tc_006_multichip_order.json",
+      "expected_receiver_action": "establish a total order across two Eulers by RECEIPT_BEACON epoch; drop any SPIKE_SUMMARY whose trailing RECEIPT does not match BLAKE3(KIND,EPOCH,PAYLOAD)."
+    }
+  ],
+  "conformance_levels": {
+    "C0": "Spec-only: TC-001, TC-002 acknowledged in docs; no RTL receiver tested.",
+    "C1": "Stub-receiver: TC-001, TC-002 exercised by sim against d2d_holo_mesh.v stub.",
+    "C2": "Full receiver: TC-001 through TC-005 exercised by sim against an implemented mesh router.",
+    "C3": "Multi-chip: TC-006 exercised by sim across at least two Euler instances or one Euler + one Gamma instance.",
+    "C4": "Silicon: any of the above re-run on returned die. NOT achievable in this branch."
+  },
+  "prohibited_promotions": [
+    "Do not change KIND assignments in kind_registry without bumping spec_id and adding a VCM row.",
+    "Do not relabel tier to MEASURED. No D2D claim in this repo is silicon-tier.",
+    "Do not introduce a test case whose expected action contradicts docs/D2D_PROTOCOL.md §5.2 bridge invariant."
+  ]
+}
