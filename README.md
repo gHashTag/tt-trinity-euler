@@ -80,6 +80,7 @@ are closed silicon and do not ship a native ternary path; see
 | [docs/WHITEPAPER_LINKS.md](docs/WHITEPAPER_LINKS.md) | Value-proposition paragraph and external publication / DOI / programme link index |
 | [docs/PROJECTIONS_22FDX.md](docs/PROJECTIONS_22FDX.md) | 22FDX TOPS/W projection and Zenodo bundle readiness — projections / plans only |
 | [docs/SCIENTIFIC_IMPROVEMENT_PLAN.md](docs/SCIENTIFIC_IMPROVEMENT_PLAN.md) | TRI-NET 2026 Scientific Improvement Plan — e-engine view (CL / EN / SN / PUB / OS tracks; `target` / `projection` / `VERIFY` labels) |
+| [.github/issues/ISSUES_SUMMARY.md](.github/issues/ISSUES_SUMMARY.md) | Issue pack for the 2026 SIP — EPIC + 16 child issue drafts; numeric prefixes are local plan IDs (not GitHub issue numbers until [`create_issues.sh`](.github/issues/create_issues.sh) is run with `--apply`) |
 
 ---
 

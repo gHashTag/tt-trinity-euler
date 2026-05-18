@@ -203,6 +203,22 @@ and is `VERIFY`-only here.
 
 ---
 
+## 9a. Issue pack
+
+The 16 plan rows above have draft GitHub issue bodies under
+[`.github/issues/`](../.github/issues/). The numeric prefix (`00_`, …,
+`16_`) is a **local plan ID** — it is **not a GitHub issue number**.
+Real issue numbers are assigned only after
+[`.github/issues/create_issues.sh`](../.github/issues/create_issues.sh)
+runs successfully with `--apply`. The script is read-only by default
+(`--dry-run` implied), idempotent (skips titles that already exist as
+open issues), and never modifies CI workflows.
+
+See [`.github/issues/ISSUES_SUMMARY.md`](../.github/issues/ISSUES_SUMMARY.md)
+for the index.
+
+---
+
 ## 10. What this is NOT (explicit anti-claims)
 
 This section restates §1's anti-claims as a checklist so a reader scanning
@@ -226,3 +242,8 @@ only this section gets the honesty contract.
 - ❌ This plan **does not** speak for sibling chips (Phi, Gamma) or the
   toolchain (t27) — their own SIP files own their rows. Cross-chip
   Triple-Deck conformance is per [`docs/TRIPLE_DECK_STATUS.md`](TRIPLE_DECK_STATUS.md) §4.
+- ❌ This plan **does not** claim any GitHub issue exists. The
+  [`.github/issues/`](../.github/issues/) directory holds drafts whose
+  numeric prefixes are local plan IDs only. Real issue numbers appear
+  only after [`create_issues.sh`](../.github/issues/create_issues.sh) is
+  run with `--apply`.
