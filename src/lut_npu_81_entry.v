@@ -7,6 +7,8 @@
 // Verilog-2005: flat 12-bit bus for trit_in instead of unpacked array
 
 `default_nettype none
+// R-SI-1 / Verilog-2005: ports must be packed. trit_in is the concatenation
+// of 4 × 3-bit trit codes packed MSB-first: {trit_in_3, trit_in_2, trit_in_1, trit_in_0}.
 module lut_npu_81_entry (
     input  wire        clk,
     input  wire        rst_n,

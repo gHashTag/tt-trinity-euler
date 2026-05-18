@@ -106,7 +106,7 @@ module avs_controller_96 (
             for (j = 0; j < 6; j = j + 1) begin
                 avg_power[j] <= 6'd0;
                 for (i = 0; i < 16; i = i + 1) begin
-                    avg_power[j] <= avg_power[j] + power_req[j*16 + i];
+                    avg_power[j] <= avg_power[j] + power_req[(j<<4) + i];
                 end
                 avg_power[j] <= avg_power[j] >> 4;  // Divide by 16
                 total_power <= total_power + avg_power[j];
@@ -141,28 +141,28 @@ module avs_controller_96 (
                 for (i = 0; i < 16; i = i + 1) begin
                     if (global_therm >= TEMP_CRIT) begin
                         // Emergency: minimum voltage
-                        voltage_level[(j*16+i)*2+1] <= 1'b0;
-                        voltage_level[(j*16+i)*2]   <= 1'b0;  // 0.75V
+                        voltage_level[(((j<<4)+i)<<1)+1] <= 1'b0;
+                        voltage_level[(((j<<4)+i)<<1)]   <= 1'b0;  // 0.75V
                     end else if (global_therm >= TEMP_WARNING) begin
                         // Thermal warning: reduce voltage
-                        if ({voltage_level[(j*16+i)*2+1], voltage_level[(j*16+i)*2]} > 2'b01) begin
-                            voltage_level[(j*16+i)*2+1] <= 1'b0;
-                            voltage_level[(j*16+i)*2]   <= 1'b1;  // 0.85V
+                        if ({voltage_level[(((j<<4)+i)<<1)+1], voltage_level[(((j<<4)+i)<<1)]} > 2'b01) begin
+                            voltage_level[(((j<<4)+i)<<1)+1] <= 1'b0;
+                            voltage_level[(((j<<4)+i)<<1)]   <= 1'b1;  // 0.85V
                         end
                     end else begin
                         // Normal operation: based on power demand
-                        if (power_req[j*16 + i] < POWER_LOW) begin
-                            voltage_level[(j*16+i)*2+1] <= 1'b0;
-                            voltage_level[(j*16+i)*2]   <= 1'b0;  // 0.75V
-                        end else if (power_req[j*16 + i] < POWER_MED) begin
-                            voltage_level[(j*16+i)*2+1] <= 1'b0;
-                            voltage_level[(j*16+i)*2]   <= 1'b1;  // 0.85V
-                        end else if (power_req[j*16 + i] < POWER_HIGH) begin
-                            voltage_level[(j*16+i)*2+1] <= 1'b0;
-                            voltage_level[(j*16+i)*2]   <= 1'b1;  // 0.95V
+                        if (power_req[(j<<4) + i] < POWER_LOW) begin
+                            voltage_level[(((j<<4)+i)<<1)+1] <= 1'b0;
+                            voltage_level[(((j<<4)+i)<<1)]   <= 1'b0;  // 0.75V
+                        end else if (power_req[(j<<4) + i] < POWER_MED) begin
+                            voltage_level[(((j<<4)+i)<<1)+1] <= 1'b0;
+                            voltage_level[(((j<<4)+i)<<1)]   <= 1'b1;  // 0.85V
+                        end else if (power_req[(j<<4) + i] < POWER_HIGH) begin
+                            voltage_level[(((j<<4)+i)<<1)+1] <= 1'b0;
+                            voltage_level[(((j<<4)+i)<<1)]   <= 1'b1;  // 0.95V
                         end else begin
-                            voltage_level[(j*16+i)*2+1] <= 1'b1;
-                            voltage_level[(j*16+i)*2]   <= 1'b1;  // 1.05V
+                            voltage_level[(((j<<4)+i)<<1)+1] <= 1'b1;
+                            voltage_level[(((j<<4)+i)<<1)]   <= 1'b1;  // 1.05V
                         end
                     end
                 end
