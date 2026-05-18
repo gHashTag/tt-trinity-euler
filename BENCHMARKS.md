@@ -57,6 +57,24 @@ here so that no one quotes them as if they were.
 
 ---
 
+## 3a. Cross-references for new protocol docs
+
+The following docs add structure around how benchmarks should be produced
+and quoted; they do **not** add new measured rows to §2.
+
+- [`docs/GF16_BFLOAT16_NMSE.md`](docs/GF16_BFLOAT16_NMSE.md) — standard
+  NMSE comparison protocol over the existing `sim/tb_gf16_dot8.v`
+  testbench. Until the harness lands, every NMSE quote MUST carry the
+  caveat block in that file.
+- [`docs/TRIPLE_DECK_STATUS.md`](docs/TRIPLE_DECK_STATUS.md) — what is
+  RTL today vs. what is SPEC-only inside the RBB / FBB / CAP_BOOST
+  composition.
+- [`docs/PROJECTIONS_22FDX.md`](docs/PROJECTIONS_22FDX.md) — per-row
+  assumption clauses for every "75 / 405 / 5.4× / ~20 TOPS / <1 W" line
+  that appears in the README. **Every number there is `PROJECTED`.**
+
+---
+
 ## 4. README claims that must be read as `PROJECTED`
 
 The current [README.md](README.md) cites three figures that **must** be

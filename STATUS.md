@@ -21,7 +21,7 @@ not.
 
 | Level | Meaning | tt-trinity-euler status | Evidence |
 |------:|---------|-------------------------|----------|
-| **SPEC**     | Architecture, ISA, pinout, protocols frozen in markdown / YAML | **DONE** | [`info.yaml`](info.yaml), [`docs/EULER_ISA_V2.md`](docs/EULER_ISA_V2.md), [`docs/PINOUT.md`](docs/PINOUT.md), [`docs/INTERCONNECT_PROTOCOL_V1.md`](docs/INTERCONNECT_PROTOCOL_V1.md), [`docs/architecture/TRI_NET_SHUTTLE_TRIAD.md`](docs/architecture/TRI_NET_SHUTTLE_TRIAD.md) |
+| **SPEC**     | Architecture, ISA, pinout, protocols frozen in markdown / YAML | **DONE (board-frozen) / PARTIAL (D2D packet layer = SPEC-DRAFT)** | [`info.yaml`](info.yaml), [`docs/EULER_ISA_V2.md`](docs/EULER_ISA_V2.md), [`docs/PINOUT.md`](docs/PINOUT.md), [`docs/INTERCONNECT_PROTOCOL_V1.md`](docs/INTERCONNECT_PROTOCOL_V1.md) (FROZEN), [`docs/D2D_PROTOCOL.md`](docs/D2D_PROTOCOL.md) (DRAFT — packet layer above the frozen 3-wire), [`docs/architecture/TRI_NET_SHUTTLE_TRIAD.md`](docs/architecture/TRI_NET_SHUTTLE_TRIAD.md) |
 | **RTL**      | Synthesisable Verilog-2005 in `src/`, R-SI-1 compliant | **DONE** | 86 `.v` files under [`src/`](src/) (51 core e-engine modules + 35 v1.0.0 quantiser / power / format files merged in from main), R-SI-1 enforced by [`.github/workflows/no_star.yaml`](.github/workflows/no_star.yaml) |
 | **SIM**      | Functional simulation passes locally and in CI | **DONE (core path)** | `iverilog` GF16 dot4/dot8 testbench → `TOTAL PASS=17 FAIL=0` (see §3); [`.github/workflows/test.yaml`](.github/workflows/test.yaml) canonical 0x47C0 check |
 | **SYNTH**    | OpenLane2 logic synthesis on SKY130A clean (no errors) | **PARTIAL — pipeline configured, last successful run claimed in CHANGELOG; not re-verified locally in this branch** | [`.github/workflows/gds.yaml`](.github/workflows/gds.yaml) (uses `TinyTapeout/tt-gds-action@ttsky26b`); [`CHANGELOG.md`](CHANGELOG.md) "Verified — All 5 CI workflows green" |
@@ -81,6 +81,12 @@ not in this table, it is **not** part of the supported status.
 | 10 CLARA gaps present as RTL modules | [`info.yaml`](info.yaml), [`CLARA_TRACEABILITY.md`](CLARA_TRACEABILITY.md) | RTL (functional verification level varies — see CLARA_TRACEABILITY.md) |
 | D2D 4-port N/E/S/W mesh router | [`src/d2d_holo_mesh.v`](src/d2d_holo_mesh.v) + [`docs/CROSS_TILE_INTERCONNECT.md`](docs/CROSS_TILE_INTERCONNECT.md) | RTL |
 | Trinity Interconnect Protocol v1.0 spec frozen | [`docs/INTERCONNECT_PROTOCOL_V1.md`](docs/INTERCONNECT_PROTOCOL_V1.md) (commit `507cdfc`) | SPEC |
+| D2D holographic packet-layer protocol drafted (above the frozen 3-wire TIP v1.0) | [`docs/D2D_PROTOCOL.md`](docs/D2D_PROTOCOL.md) | SPEC-DRAFT |
+| GF16 vs bfloat16 NMSE comparison protocol | [`docs/GF16_BFLOAT16_NMSE.md`](docs/GF16_BFLOAT16_NMSE.md) — protocol only; no NMSE numbers recorded yet | SPEC-DRAFT |
+| Triple-Deck (RBB→FBB→CAP_BOOST) cross-chip conformance contract | [`docs/TRIPLE_DECK_STATUS.md`](docs/TRIPLE_DECK_STATUS.md) — Deck-2 + Deck-3 RTL on Euler; Deck-1 SPEC-only | SPEC + RTL (per deck) |
+| TRI-NET external integration API notes | [`docs/TRI_NET_API.md`](docs/TRI_NET_API.md) | SPEC-DRAFT |
+| Whitepaper / publication link index | [`docs/WHITEPAPER_LINKS.md`](docs/WHITEPAPER_LINKS.md) | INDEX |
+| 22FDX TOPS/W projection and Zenodo bundle readiness | [`docs/PROJECTIONS_22FDX.md`](docs/PROJECTIONS_22FDX.md) — all rows PROJECTED / PLANNED | PROJECTED / PLANNED |
 | CLARA proof manifest (Coq/Rocq provenance) | [`docs/CLARA_PROOF_MANIFEST.md`](docs/CLARA_PROOF_MANIFEST.md) (commit `c3b80b1`) | SPEC + partial proof artefacts under [`trios-coq/`](trios-coq/) |
 | TTSKY26b shuttle submission | [`CHANGELOG.md`](CHANGELOG.md) `[TTSKY26b-submit] — 2026-05-17` | GDS-SUBMIT |
 | Apache-2.0 only | [`LICENSE`](LICENSE) + R-SI-6 grep guard | LICENSE |
@@ -94,7 +100,9 @@ quote in customer-facing material until evidence lands":
 
 - ❌ **Measured silicon TOPS/W.** The 75 / 405 TOPS/W numbers cited in the
   README are *projections* on an advanced node, not SKY130A demonstrator
-  measurements. See [BENCHMARKS.md](BENCHMARKS.md) §"Honest disclosure".
+  measurements. See [BENCHMARKS.md](BENCHMARKS.md) §"Honest disclosure"
+  and [`docs/PROJECTIONS_22FDX.md`](docs/PROJECTIONS_22FDX.md) for the
+  per-row assumption clauses (all rows there are `PROJECTED`).
 - ❌ **Measured power on silicon.** No power table from returned silicon.
 - ❌ **Measured WNS / clock headroom on silicon.** The 50 MHz target is the
   spec ceiling for SKY130A submission, not a measured Fmax.

@@ -73,6 +73,12 @@ are closed silicon and do not ship a native ternary path; see
 | [CLARA_TRACEABILITY.md](CLARA_TRACEABILITY.md) | 10 CLARA gaps → RTL → tests → external proofs |
 | [COMPETITORS.md](COMPETITORS.md) | Restrained, evidence-backed read of the commercial NPU field |
 | [BENCHMARKS.md](BENCHMARKS.md) | What's `MEASURED` / `SIMULATED` / `SYNTHESIS-REPORTED` / `PROJECTED`, and what's not measured yet |
+| [docs/D2D_PROTOCOL.md](docs/D2D_PROTOCOL.md) | Holographic die-to-die packet protocol (draft) — Euler as safety/control bridge between Phi and Gamma |
+| [docs/GF16_BFLOAT16_NMSE.md](docs/GF16_BFLOAT16_NMSE.md) | Standard NMSE comparison protocol — GF16 (this repo) vs bfloat16 software reference |
+| [docs/TRIPLE_DECK_STATUS.md](docs/TRIPLE_DECK_STATUS.md) | RBB → FBB → CAP_BOOST status on Euler + cross-chip conformance contract |
+| [docs/TRI_NET_API.md](docs/TRI_NET_API.md) | External-integration view of the e-engine surface (pinout + TIP v1.0 + D2D) |
+| [docs/WHITEPAPER_LINKS.md](docs/WHITEPAPER_LINKS.md) | Value-proposition paragraph and external publication / DOI / programme link index |
+| [docs/PROJECTIONS_22FDX.md](docs/PROJECTIONS_22FDX.md) | 22FDX TOPS/W projection and Zenodo bundle readiness — projections / plans only |
 
 ---
 

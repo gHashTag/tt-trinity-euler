@@ -13,6 +13,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `docs/COMPARISON.md` — Cross-chip comparison matrix (phi/euler/gamma)
 - Performance benchmarks section in README with throughput, latency, area, power tables
 - Additional testbenches for quantization and compute modules
+- `docs/D2D_PROTOCOL.md` — Holographic die-to-die packet protocol (SPEC-DRAFT). Builds on the frozen 3-wire TIP v1.0; positions Euler as the safety/control e-engine endpoint bridging Phi (φ-anchor) and Gamma (γ-surface).
+- `docs/GF16_BFLOAT16_NMSE.md` — Standard NMSE comparison protocol between GF16 (HW-under-test via `sim/tb_gf16_dot8.v`) and bfloat16 (software reference). Until the harness lands, no NMSE number may be quoted.
+- `docs/TRIPLE_DECK_STATUS.md` — RBB → FBB → CAP_BOOST (AVS-96) status on Euler with honest per-deck readiness; cross-chip conformance contract so Phi and Gamma can match.
+- `docs/TRI_NET_API.md` — External-integration view: pinout, TIP v1.0, D2D — bring-up sequence and host driver shape.
+- `docs/WHITEPAPER_LINKS.md` — Value proposition + external publication / DOI / programme link index.
+- `docs/PROJECTIONS_22FDX.md` — 22FDX TOPS/W projection table (all rows `PROJECTED`) and Zenodo bundle readiness checklist (all rows `PLANNED`).
 
 ### Changed
 - Updated README with unified badge order and TRI-NET cross-references section
