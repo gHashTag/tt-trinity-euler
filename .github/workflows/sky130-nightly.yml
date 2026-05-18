@@ -16,20 +16,47 @@ jobs:
   sky130-run:
     runs-on: ubuntu-latest
     timeout-minutes: 240   # 4h hard cap (matches run_sky130_actual.sh MAX_HOURS)
+    env:
+      TOOLCHAIN_IMAGE: ghcr.io/ghashtag/tt-trinity-gf16/sky130-toolchain:v25-frozen
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Acquire frozen SKY130 toolchain image
+        id: image
+        run: |
+          set -euo pipefail
+          if docker pull "${TOOLCHAIN_IMAGE}"; then
+            echo "source=ghcr" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "::warning::GHCR pull failed for ${TOOLCHAIN_IMAGE} — falling back to local build from docker/Dockerfile.sky130-toolchain"
+          if [ ! -f docker/Dockerfile.sky130-toolchain ]; then
+            echo "::error::No GHCR image and no local Dockerfile available — cannot proceed"
+            exit 1
+          fi
+          docker build \
+            -t "${TOOLCHAIN_IMAGE}" \
+            -f docker/Dockerfile.sky130-toolchain \
+            docker
+          echo "source=local-build" >> "$GITHUB_OUTPUT"
+
       - name: Run frozen SKY130 toolchain (Docker image)
         id: run
         run: |
-          docker pull ghcr.io/ghashtag/tt-trinity-gf16/sky130-toolchain:v25-frozen
           docker run --rm \
             -v "${{ github.workspace }}":/workspace:ro \
             -v "${{ github.workspace }}/runs":/runs \
             -e RUN_DIR=/runs/${{ github.run_id }} \
             -e MAX_HOURS=4 \
-            ghcr.io/ghashtag/tt-trinity-gf16/sky130-toolchain:v25-frozen \
+            "${TOOLCHAIN_IMAGE}" \
             sacred_alu_352_lut
 
       - name: Verify verdict.json
