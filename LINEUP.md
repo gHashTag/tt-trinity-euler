@@ -119,3 +119,32 @@ External anchors:
 - DOI: [10.5281/zenodo.19227877](https://doi.org/10.5281/zenodo.19227877)
 - DARPA CLARA programme: <https://www.darpa.mil/research/programs/clara>
 - Tiny Tapeout shuttle index: <https://tinytapeout.com/chips/>
+
+---
+
+## 8. Line-wide protocol / integration docs (new in 2026-05-18 lineup pass)
+
+These docs describe how Euler participates in the line beyond the
+TTSKY26b-frozen board-level handshake. Each carries readiness labels —
+none of them weakens the existing [STATUS.md](STATUS.md) ladder.
+
+- [`docs/D2D_PROTOCOL.md`](docs/D2D_PROTOCOL.md) — die-to-die packet
+  layer above the frozen 3-wire (SPEC-DRAFT); Euler as safety/control
+  bridge between Phi (φ-anchor) and Gamma (γ-surface).
+- [`docs/GF16_BFLOAT16_NMSE.md`](docs/GF16_BFLOAT16_NMSE.md) — standard
+  NMSE comparison protocol; reuses the existing
+  `sim/tb_gf16_dot8.v` testbench; t27 is the upstream owner.
+- [`docs/TRIPLE_DECK_STATUS.md`](docs/TRIPLE_DECK_STATUS.md) — RBB →
+  FBB → CAP_BOOST (AVS-96) status on Euler + cross-chip conformance
+  contract for Phi and Gamma to match.
+- [`docs/TRI_NET_API.md`](docs/TRI_NET_API.md) — external-integration
+  view of the e-engine surface.
+- [`docs/WHITEPAPER_LINKS.md`](docs/WHITEPAPER_LINKS.md) — value-prop
+  paragraph + link index for evaluators.
+- [`docs/PROJECTIONS_22FDX.md`](docs/PROJECTIONS_22FDX.md) — 22FDX
+  TOPS/W projection and Zenodo bundle readiness (labelled projections
+  / plans only).
+- [`docs/SCIENTIFIC_IMPROVEMENT_PLAN.md`](docs/SCIENTIFIC_IMPROVEMENT_PLAN.md)
+  — TRI-NET 2026 Scientific Improvement Plan, e-engine view. CL / EN /
+  SN / PUB / OS tracks; `target` / `projection` / `VERIFY` labelled;
+  silicon-dependent rows are explicitly "open" (undated).
