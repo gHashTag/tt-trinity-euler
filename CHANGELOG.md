@@ -11,16 +11,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `docs/API.md` — Complete API documentation with module interfaces
 - `docs/ARCHITECTURE.md` — ASCII architecture diagrams (system overview, 2×2 mesh, CLARA gaps)
 - `docs/COMPARISON.md` — Cross-chip comparison matrix (phi/euler/gamma)
+- `docs/TEST_COVERAGE.md` — Test coverage report showing 56% coverage
+- `docs/TROUBLESHOOTING.md` — Comprehensive troubleshooting guide
+- `docs/INDEX.md` — Complete documentation index
+- `docs/GDS.md` — GDS status badges and tracking
+- `docs/HARDWARE_BRINGUP.md` — Hardware bring-up guide with cocotb examples
+- `examples/README.md` — Code examples for common usage patterns
+- `test/tb_integration_clara.v` — CLARA gaps integration test
+- `test/sim.sh` — Unified simulation script with colorized output
+- `.verible.lintr` — Verible linter configuration
+- `.pre-commit-config.yaml` — Pre-commit hooks for code quality and CLARA traceability
+- `scripts/check_clara_traceability.sh` — CLARA gap traceability checker
+- `scripts/formal_verify.sh` — Formal verification script using SBY
+- `scripts/perf_sim.sh` — Performance simulation with cycle counting
+- `CONTRIBUTING.md` — Comprehensive contributing guidelines with CLARA gap requirements
 - Performance benchmarks section in README with throughput, latency, area, power tables
-- Additional testbenches for quantization and compute modules
-- `docs/D2D_PROTOCOL.md` — Holographic die-to-die packet protocol (SPEC-DRAFT). Builds on the frozen 3-wire TIP v1.0; positions Euler as the safety/control e-engine endpoint bridging Phi (φ-anchor) and Gamma (γ-surface).
-- `docs/GF16_BFLOAT16_NMSE.md` — Standard NMSE comparison protocol between GF16 (HW-under-test via `sim/tb_gf16_dot8.v`) and bfloat16 (software reference). Until the harness lands, no NMSE number may be quoted.
-- `docs/TRIPLE_DECK_STATUS.md` — RBB → FBB → CAP_BOOST (AVS-96) status on Euler with honest per-deck readiness; cross-chip conformance contract so Phi and Gamma can match.
-- `docs/TRI_NET_API.md` — External-integration view: pinout, TIP v1.0, D2D — bring-up sequence and host driver shape.
-- `docs/WHITEPAPER_LINKS.md` — Value proposition + external publication / DOI / programme link index.
-- `docs/PROJECTIONS_22FDX.md` — 22FDX TOPS/W projection table (all rows `PROJECTED`) and Zenodo bundle readiness checklist (all rows `PLANNED`).
-- `docs/SCIENTIFIC_IMPROVEMENT_PLAN.md` — TRI-NET 2026 Scientific Improvement Plan, e-engine view: CL-01..CL-04 (DARPA-CLARA alignment), EN-01..EN-03 (energy efficiency / Triple-Deck), SN-01..SN-03 (SNN-TRI fusion hooks), PUB-01..PUB-03 (publication path), OS-01..OS-03 (open-source community), timeline (Q2..Q4 2026 + "open" for silicon), success metrics (committed artefacts + CI-green workflows only), references, anti-claims. `target` / `projection` / `VERIFY` labels per row; no `MEASURED` row added; no DARPA funding / silicon date / paper acceptance / `1000×` / `4000 TOPS/W` claim.
-- `.github/issues/` — 2026 SIP issue pack. `00_EPIC_2026.md` + 16 child issue drafts (CL-01..CL-04, EN-01..EN-03, SN-01..SN-03, PUB-01..PUB-03, OS-01..OS-03), `ISSUES_SUMMARY.md` index, and `create_issues.sh` filer. **Numeric file prefixes (`00_`..`16_`) are local plan IDs — NOT GitHub issue numbers** until `create_issues.sh --apply` is run. The filer is read-only by default (`--dry-run` implied), idempotent (skips titles that already exist as open issues), executable, and never touches `.github/workflows/`. Every child issue carries an explicit Non-claims block restating the relevant anti-claim.
 
 ### Changed
 - Updated README with unified badge order and TRI-NET cross-references section
