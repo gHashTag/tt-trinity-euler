@@ -45,7 +45,7 @@ jobs:
           docker build \
             -t "${TOOLCHAIN_IMAGE}" \
             -f docker/Dockerfile.sky130-toolchain \
-            docker
+            .
           echo "source=local-build" >> "$GITHUB_OUTPUT"
 
       - name: Run frozen SKY130 toolchain (Docker image)
