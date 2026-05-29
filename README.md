@@ -140,11 +140,11 @@ deposition can be uploaded.
 
 `tt-trinity-euler` is the **reasoning and verification backbone** of the TRI-NET stack. As the 8×2 tile e-engine (90 modules), Euler's mission is to make AI computation auditable: every inference step can emit a BLAKE3-signed proof-trace receipt, every decision can be verified against symbolic constraints (SAT/ASP/Datalog), and all ten DARPA CLARA AI Safety Gaps have one-to-one RTL module mappings. The SUPER-CROWN (18 modules) includes `vsa_matmul_8x8`/`16x16` for ternary VSA, `bitnet_encoder` for BitNet b1.58 MLP, `blake3_anchor` + `multi_tile_receipt` + `crc32_receipt` for the DePIN signing chain (G4), `alu9_decoder` for the 9-instruction t27 ISA, and `ring27_memory` for 3³ Coptic ternary storage.
 
-In the TRI-NET trust model, Euler answers the question: **"This computation is correct, auditable, and bounded."** Phi's identity proof grounds the boot, and Euler extends that foundation into symbolic AI safety — the only known open-silicon hardware implementation of the complete DARPA CLARA 10-gap lattice. Euler bridges identity (Phi) to inference (Gamma) via a 4-port D2D holo mesh (`d2d_holo_mesh`, N/E/S/W), carrying BLAKE3 receipts across dies.
+In the TRI-NET trust model, Euler answers the question: **"This computation is correct, auditable, and bounded."** Phi's identity proof grounds the boot, and Euler extends that foundation into symbolic AI safety — an open-silicon RTL mapping of the DARPA CLARA 10-gap lattice (the synthesised silicon uses the `_mini` variants bounded at 16 clauses/rules to fit the TinyTapeout cell budget; the unbounded 256 figure is the t27 software/spec target). Euler bridges identity (Phi) to inference (Gamma) via a 4-port D2D holo mesh (`d2d_holo_mesh`, N/E/S/W), carrying BLAKE3 receipts across dies.
 
 ### Cross-Die Anchor 0x47C0 — Theorem 36.1
 
-Every TRI-NET die asserts `{uio_out, uo_out} = 0x47C0` on reset. This value is not a magic constant — it is derived from first principles: φ²+φ⁻²=3 (the Lucas L₂ identity) implies `dot4(1,2,3,4) = 0x47C0` in GF16. This derivation is formalised as **PhD Theorem 36.1** (Chapter 36, `flos_70.tex`). Because all three dies independently compute the same anchor from the same mathematical axiom, a multi-chip board can perform cross-die liveness verification without any shared secret. The D2D LAYER-FROZEN gate in Euler's West TX implements Theorem 36.1 R18: once committed, the anchor cannot be revoked. DOI: [10.5281/zenodo.19227877](https://doi.org/10.5281/zenodo.19227877).
+Every TRI-NET die asserts `{uio_out, uo_out} = 0x47C0` on reset. This value is not a magic constant — it is derived from first principles: φ²+φ⁻²=3 (the Lucas L₂ identity) implies `dot4(1,2,3,4) = 0x47C0` in GF16. This derivation is formalised as **PhD Theorem 36.1** (Chapter 36, `flos_70.tex`). Because all three dies independently compute the same anchor from the same mathematical identity, a multi-chip board can use it as a deterministic POST / build-provenance fingerprint without any shared secret — note this is a liveness/provenance check, **not** a cryptographic proof of correctness (a returned die emitting a value ≠ 0x47C0 would refute shared provenance). The D2D LAYER-FROZEN gate in Euler's West TX implements Theorem 36.1 R18: once committed, the anchor cannot be revoked. DOI: [10.5281/zenodo.19227877](https://doi.org/10.5281/zenodo.19227877).
 
 *"Reasoning you can audit."*
 
@@ -320,8 +320,8 @@ This chip is the **e^q** factor — natural exponential growth.
 │  10 DARPA CLARA AI Safety Gaps                                       │
 │  ┌─────────────────────────────────────────────────────────┐ │
 │  │   redteam_filter.v    (adversarial detection)          │ │
-│  │   datalog_engine.v    (forward-chain Datalog)          │ │
-│  │   constraint_ctrl.v   (bounded rationality)            │ │
+│  │   datalog_engine_mini.v (forward-chain Datalog, 16 cl) │ │
+│  │   restraint_ctrl.v    (bounded rationality)            │ │
 │  │   ... + 7 more          │ │ │
 │  └─────────────────────────────────────────────────────┘ │
 │                                                                 │
@@ -382,7 +382,7 @@ semantics:
 
 | Module | Function | Cells |
 |--------|----------|-------|
-| `phi_anchor_post.v` | Proves φ²+φ⁻²=3 via Lucas | ~120 |
+| `phi_anchor_post.v` | POST: checks φ²+φ⁻²=3 via the Lucas L₂ chain at reset | ~120 |
 | `lucas_rom.v` | Addressable Lucas L_n probe | ~30 |
 | `gf16_dot4.v` | Canonical 0x47C0 anchor | ~50 |
 | `gf16_dot8.v` | 8-lane dot8 (2× dot4) | ~100 |
@@ -411,7 +411,7 @@ e-engine implements all 10 DARPA CLARA AI safety gaps:
 | Gap-1 | `redteam_filter.v` | ~250 | TA1 | Adversarial detection (5 categories) |
 | Gap-2 | `k3_alu.v` | ~150 | TA1.1 | Kleene K3 ternary ALU |
 | Gap-3 | `datalog_engine_mini.v` | ~500 | TA1 | Forward-chain Datalog (16 clauses) |
-| Gap-4 | `constraint_ctrl.v` | ~100 | TA1.4 | Bounded rationality |
+| Gap-4 | `restraint_ctrl.v` | ~100 | TA1.4 | Bounded rationality (sticky force-unknown on φ-drift / step / receipt fault) |
 | Gap-5 | `explainability_unit.v` | ~200 | TA1.2 | Proof-trace emitter |
 | Gap-6 | `asp_solver_mini.v` | ~300 | TA1.1 | ASP solver with NAF |
 | Gap-7 | `composition_kernel.v` | ~250 | - | Orchestrator |
